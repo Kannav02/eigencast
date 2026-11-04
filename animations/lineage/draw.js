@@ -25,11 +25,11 @@ function makeBump(seed, n) {
   for (let i = 0; i < n; i++) {
     const x = clamp(0.2 + i * (9.6 / (n - 1)) + (r() - 0.5) * 0.2, 0, 10);
     const inside = x > 3.5 && x < 6.5;
-    out.push({ x, y: (inside ? r() < 0.86 : r() < 0.1) ? 1 : 0 });
+    out.push({ x, y: (inside ? r() < 0.92 : r() < 0.04) ? 1 : 0 });
   }
   return out;
 }
-const D3 = makeBump(5, 40), D3v = makeBump(99, 40);
+const D3 = makeBump(8, 44), D3v = makeBump(99, 44);
 
 // ---------- models ----------
 function ols(pts) {
@@ -146,7 +146,7 @@ const sweep = (() => {
 const sweepBest = sweep.reduce((a, b) => b.g < a.g ? b : a);
 const forest = Array.from({ length: 30 }, (_, k) => { const b = boot(D3, 500 + k); return { tree: fitGini(b.pts, 8), counts: b.counts }; });
 const favg = (x, k) => { let s = 0; for (let j = 0; j < k; j++) s += pred(forest[j].tree, x); return s / k; };
-const misfit = D3.map(p => Math.abs(favg(p.x, 30) - p.y) > 0.5);
+const misfit = D3v.map(p => Math.abs(favg(p.x, 30) - p.y) > 0.5); // judged on held-out rows: a forest fits its own training rows
 const B = boost(D3, D3v, 2, 0.3, 40), BO = boost(D3, D3v, 3, 0.3, 300);
 const treeLim = Math.max(...B.trees.slice(1).flatMap(t => leaves(t).map(l => Math.abs(0.3 * l.v)))) * 1.15;
 const boBest = BO.va.reduce((bi, v, i, a) => v < a[bi] ? i : bi, 0);
@@ -434,7 +434,7 @@ scene("Random forest", 40, [
   [7, "SCORE", "Grow a deep tree on each sample. The forest's score is the average of all the trees' predictions (bold line)."],
   [16, "LOSS", "There's no shared loss. Each tree minimizes Gini on its own sample, independently of the others."],
   [22, "FIX", "The trees' random mistakes point in different directions and cancel out, so variance drops."],
-  [28, "WALL", "The wall: no tree ever looks at what the others got wrong, so mistakes they share survive the average (circled)."],
+  [28, "WALL", "The wall: no tree ever looks at what the others got wrong, so mistakes they share survive the average. Circled: new rows it still gets wrong."],
   [35, "WALL", "To fix that, build trees in sequence, each one aimed at what's still wrong."]
 ], t => {
   axes(P3, [0, 1]);
@@ -457,12 +457,12 @@ scene("Random forest", 40, [
     for (let j = 0; j < k; j++) curve(P3, x => pred(forest[j].tree, x), C.major, 1, 0.14);
     curve(P3, x => favg(x, k), C.ink, 3);
     dots(P3, D3, classCol);
-    if (t >= 28) { const a = prog(t, 28, 29.5); D3.forEach((p, i) => { if (misfit[i]) ring(P3.X(p.x), P3.Y(p.y), 10, C.rare, a, 2); }); }
+    if (t >= 28) { const a = prog(t, 28, 29.5); D3v.forEach((p, i) => { ring(P3.X(p.x), P3.Y(p.y), 4, classCol(p), a, 1.5); if (misfit[i]) ring(P3.X(p.x), P3.Y(p.y), 11, C.rare, a, 2); }); }
     mono(`trees: ${k} / 30`, RX, 130, { size: 16 });
     mono("score = average of", RX, 170, { size: 13, color: C.muted });
     mono("all trees' predictions", RX, 190, { size: 13, color: C.muted });
     if (t >= 16) { txt("Each tree: own sample,", RX, 240, { size: 16, color: C.gold }); txt("own Gini, no shared loss.", RX, 262, { size: 16, color: C.gold }); }
-    if (t >= 28) { txt(`${misfit.filter(Boolean).length} rows still wrong.`, RX, 320, { size: 17, color: C.rare }); txt("Nothing aims at them.", RX, 344, { size: 17, color: C.rare }); }
+    if (t >= 28) { txt(`${misfit.filter(Boolean).length} held-out rows wrong.`, RX, 320, { size: 17, color: C.rare }); txt("Nothing aims at them.", RX, 344, { size: 17, color: C.rare }); }
   }
 });
 
