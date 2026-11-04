@@ -1,0 +1,760 @@
+<title>Rare Class Playbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (~68ch) with the interactive lab breaking out wider; sections follow the argument from problem to pipeline. */
+:root {
+  --paper: #f5f7f6;
+  --panel: #ffffff;
+  --ink: #17201f;
+  --muted: #5b6866;
+  --rule: #d9e0de;
+  --major: #3f6f8f;        /* majority class */
+  --major-soft: rgba(63,111,143,.18);
+  --rare: #c2410c;         /* rare class */
+  --rare-soft: rgba(194,65,12,.22);
+  --good: #2f7d4f;
+  --code-bg: #eef2f1;
+  --f-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121817; --panel: #1a2221; --ink: #e4ebe9; --muted: #98a7a4; --rule: #2c3836;
+    --major: #7fb0d1; --major-soft: rgba(127,176,209,.22);
+    --rare: #f08a4b; --rare-soft: rgba(240,138,75,.26);
+    --good: #6cc391; --code-bg: #1f2928; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121817; --panel: #1a2221; --ink: #e4ebe9; --muted: #98a7a4; --rule: #2c3836;
+  --major: #7fb0d1; --major-soft: rgba(127,176,209,.22);
+  --rare: #f08a4b; --rare-soft: rgba(240,138,75,.26);
+  --good: #6cc391; --code-bg: #1f2928; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 80px;
+}
+.col { max-width: 68ch; margin: 0 auto; }
+.wide { max-width: 1000px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.01em; }
+h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: .6rem; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0 0 1rem; }
+.eyebrow { font-family: var(--f-mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.2rem; color: var(--muted); margin-top: .8rem; }
+section { padding-block: 2.6rem 0; }
+section + section { border-top: 1px solid var(--rule); margin-top: 2.6rem; }
+.maj { color: var(--major); font-weight: 600; }
+.rar { color: var(--rare); font-weight: 600; }
+code, .mono { font-family: var(--f-mono); font-size: .86em; }
+:not(pre) > code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; }
+pre { background: var(--code-bg); padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.5; margin: 0 0 1rem; }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 1.6rem; font-family: var(--f-mono); font-size: .8rem; }
+nav.toc a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--rule); }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--ink); border-color: var(--ink); }
+a:focus-visible, input:focus-visible { outline: 2px solid var(--major); outline-offset: 2px; }
+
+.math { font-family: var(--f-mono); font-size: .92rem; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 16px; margin: 0 0 1rem; overflow-x: auto; white-space: nowrap; }
+.callout { border-left: 3px solid var(--ink); padding: 2px 0 2px 16px; margin: 1.2rem 0; font-size: 1.05rem; }
+
+/* class split bar */
+.split { display: flex; height: 34px; border-radius: 4px; overflow: hidden; margin: .4rem 0 .4rem; font-family: var(--f-mono); font-size: .75rem; }
+.split div { display: flex; align-items: center; padding-left: 8px; color: #fff; white-space: nowrap; }
+.split .a { background: var(--major); flex: 96; }
+.split .b { background: var(--rare); flex: 3; padding: 0; }
+.split .c { background: var(--rare); opacity: .6; flex: 1; padding: 0; }
+.legend { font-family: var(--f-mono); font-size: .78rem; color: var(--muted); margin-bottom: 1rem; }
+
+/* lab */
+.lab { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; margin-top: 1.4rem; }
+.lab-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 760px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
+.chart-wrap { overflow-x: auto; }
+svg text { font-family: var(--f-mono); font-size: 11px; fill: var(--muted); }
+.controls { display: grid; gap: 14px; margin-top: 14px; }
+.ctl label { display: flex; justify-content: space-between; font-family: var(--f-mono); font-size: .78rem; color: var(--muted); }
+.ctl label b { color: var(--ink); font-weight: 600; }
+.ctl input[type=range] { width: 100%; accent-color: var(--ink); }
+.ctl small { display: block; font-size: .82rem; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start; }
+.stat { border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+.stat .k { font-family: var(--f-mono); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font-family: var(--f-display); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat.full { grid-column: 1 / -1; }
+.stat .v.rar { color: var(--rare); }
+.counts { font-family: var(--f-mono); font-size: .8rem; line-height: 1.7; font-variant-numeric: tabular-nums; }
+.counts span { display: inline-block; min-width: 4.5ch; text-align: right; font-weight: 600; color: var(--ink); }
+.try { font-size: .95rem; color: var(--muted); margin-top: 16px; border-top: 1px dashed var(--rule); padding-top: 12px; }
+.try li { margin-bottom: 4px; }
+
+/* method entries */
+.method { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 4px 24px; padding-block: 1.6rem; border-top: 1px solid var(--rule); }
+.method:first-of-type { border-top: 0; }
+@media (max-width: 640px) { .method { grid-template-columns: minmax(0, 1fr); } }
+.method aside { font-family: var(--f-mono); font-size: .74rem; color: var(--muted); line-height: 1.5; }
+.verdict { display: inline-block; font-family: var(--f-mono); font-size: .7rem; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; margin-top: 6px; border: 1px solid currentColor; }
+.v-yes { color: var(--good); }
+.v-maybe { color: var(--major); }
+.v-no { color: var(--rare); }
+.method h3 { margin-bottom: .5rem; }
+.method dl { margin: 0 0 .8rem; display: grid; grid-template-columns: 5.5rem minmax(0,1fr); gap: 4px 12px; font-size: .95rem; }
+.method dt { font-family: var(--f-mono); font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: .25em; }
+.method dd { margin: 0; }
+@media (max-width: 480px) { .method dl { grid-template-columns: minmax(0,1fr); } .method dt { padding-top: .5em; } }
+
+ol.pipeline { padding-left: 1.4rem; }
+ol.pipeline li { margin-bottom: .7rem; }
+table { border-collapse: collapse; font-size: .9rem; width: 100%; }
+.tbl { overflow-x: auto; margin-bottom: 1rem; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+.src { font-size: .85rem; color: var(--muted); }
+.src a { color: var(--muted); }
+/* primer */
+.flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: var(--f-mono); font-size: .78rem; margin: .4rem 0 1.2rem; }
+.flow .box { border: 1px solid var(--rule); background: var(--panel); border-radius: 6px; padding: 8px 10px; line-height: 1.35; }
+.flow .box b { display: block; color: var(--ink); }
+.flow .box span { color: var(--muted); }
+.flow .arr { color: var(--muted); }
+.freq { display: grid; gap: 10px; margin: .6rem 0 1.2rem; }
+.freq-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 10px; align-items: center; font-family: var(--f-mono); font-size: .76rem; }
+@media (max-width: 520px) { .freq-row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+.freq-bar { display: flex; height: 22px; border-radius: 3px; overflow: hidden; background: var(--code-bg); }
+.freq-bar div { height: 100%; }
+.bridge { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 18px; margin-top: 1.2rem; }
+.bridge h3 { margin-bottom: .5rem; }
+.bridge ul { margin: 0; padding-left: 1.2rem; }
+.bridge li { margin-bottom: .45rem; }
+.bridge a { color: var(--ink); }
+/* lineage */
+.thread { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: .6rem 0 1.4rem; }
+.thread div { border: 1px solid var(--rule); background: var(--panel); border-radius: 6px; padding: 8px 10px; font-family: var(--f-mono); font-size: .74rem; line-height: 1.4; color: var(--muted); }
+.thread b { display: block; color: var(--ink); font-size: .8rem; }
+.year { font-family: var(--f-display); font-size: 1.5rem; font-weight: 700; color: var(--ink); line-height: 1; }
+.mini { display: block; width: 100%; max-width: 150px; margin-top: 10px; }
+.mini .pt { fill: var(--muted); }
+.mini .pt1 { fill: var(--rare); }
+.mini .pt0 { fill: var(--major); }
+.mini .fit { fill: none; stroke: var(--ink); stroke-width: 2; }
+.mini .faint { fill: none; stroke: var(--muted); stroke-width: 1; opacity: .55; }
+.mini .ax { stroke: var(--rule); stroke-width: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="col">
+  <div class="eyebrow">Imbalanced multiclass with boosted trees</div>
+  <h1>Rare Class Playbook</h1>
+  <p class="lede">Why your model nails the majority class and fumbles the other two, built up from the math, then every fix people use, what it actually does, and which ones are worth your time.</p>
+  <nav class="toc" aria-label="Sections">
+    <a href="#lineage">0. Regression to XGBoost</a>
+    <a href="#xgb">A. How XGBoost trains</a>
+    <a href="#bayes">B. Priors and posteriors</a>
+    <a href="#why">1. Why it happens</a>
+    <a href="#lab">2. The boundary lab</a>
+    <a href="#idea">3. The one big idea</a>
+    <a href="#methods">4. The methods</a>
+    <a href="#measure">5. Measuring it</a>
+    <a href="#plan">6. What to do, in order</a>
+  </nav>
+</header>
+
+<main>
+<section id="lineage" class="col">
+  <div class="eyebrow">Primer 0</div>
+  <h2>0. From regression to XGBoost</h2>
+  <p>Every supervised model is three choices: a <b>score function</b> (what shape of answer it can produce), a <b>loss</b> (how wrong an answer is), and a <b>way to minimize</b> the loss. Each model below exists because the one before it hit a wall.</p>
+  <p><b>Prefer to watch?</b> <a href="https://claude.ai/artifact/BwD1AYMnsC1TfHeMNLvUed">Score, Loss, Wall</a> animates this whole section in about 4½ minutes.</p>
+  <div class="thread" aria-label="Lineage summary">
+    <div><b>Linear</b>straight line + squared error</div>
+    <div><b>Logistic</b>straight line in log-odds + log loss</div>
+    <div><b>Tree</b>step function + greedy splits</div>
+    <div><b>Random forest</b>average of many trees</div>
+    <div><b>Boosting / XGBoost</b>sum of trees in log-odds + log loss</div>
+  </div>
+
+  <h3>Two ways a model can be wrong</h3>
+  <p><b>Bias</b>: the model is too simple to capture the pattern, so it's wrong in the same way every time (a straight line through a curve). <b>Variance</b>: the model is so flexible it memorizes noise, so retraining on slightly different data gives a very different model. The history below is a back-and-forth between these two.</p>
+
+  <article class="method">
+    <aside><div class="year">1805</div>Least squares<br><span class="verdict v-maybe">Starting point</span>
+      <svg class="mini" viewBox="0 0 120 70" aria-hidden="true"><line class="ax" x1="4" y1="66" x2="116" y2="66"/><g class="pt"><circle cx="10" cy="58" r="2.4"/><circle cx="22" cy="55" r="2.4"/><circle cx="34" cy="49" r="2.4"/><circle cx="46" cy="38" r="2.4"/><circle cx="58" cy="30" r="2.4"/><circle cx="70" cy="29" r="2.4"/><circle cx="82" cy="22" r="2.4"/><circle cx="94" cy="16" r="2.4"/><circle cx="106" cy="14" r="2.4"/></g><line class="fit" x1="6" y1="61" x2="112" y2="10"/></svg>
+    </aside>
+    <div>
+      <h3>Linear regression</h3>
+      <dl>
+        <dt>How</dt><dd>Predict a number as a weighted sum: <code>ŷ = w₁x₁ + w₂x₂ + … + b</code>. Pick the weights that minimize the average squared error <code>(y − ŷ)²</code>. There's a closed-form solution, so no iteration needed.</dd>
+        <dt>Where</dt><dd>Forecasting continuous values (price, demand), and measuring effects: "each extra bedroom adds $X". Still the default in economics and science.</dd>
+        <dt>Explain</dt><dd>Fully: each weight is "change in prediction per unit of this feature".</dd>
+        <dt>Wall</dt><dd>For classes, it predicts unbounded numbers (−0.3, 1.4) that aren't probabilities, and straight lines miss curves and interactions.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside><div class="year">1958</div>Cox<br><span class="verdict v-maybe">Fixes: outputs</span>
+      <svg class="mini" viewBox="0 0 120 70" aria-hidden="true"><line class="ax" x1="4" y1="66" x2="116" y2="66"/><g class="pt0"><circle cx="10" cy="60" r="2.4"/><circle cx="22" cy="60" r="2.4"/><circle cx="34" cy="60" r="2.4"/><circle cx="46" cy="60" r="2.4"/><circle cx="70" cy="60" r="2.4"/></g><g class="pt1"><circle cx="58" cy="10" r="2.4"/><circle cx="76" cy="10" r="2.4"/><circle cx="88" cy="10" r="2.4"/><circle cx="100" cy="10" r="2.4"/><circle cx="112" cy="10" r="2.4"/></g><path class="fit" d="M6,59.5 C40,59 48,56 58,40 C66,24 76,12 114,10.5"/></svg>
+    </aside>
+    <div>
+      <h3>Logistic regression</h3>
+      <dl>
+        <dt>How</dt><dd>Keep the weighted sum, but treat it as <b>log-odds</b>: <code>z = w·x + b</code>, then squash it into a probability with the sigmoid <code>p = 1 / (1 + e<sup>−z</sup>)</code>. Train by minimizing <b>log loss</b> <code>−[y·log p + (1−y)·log(1−p)]</code> with gradient descent. For 3 classes, use one score per class and softmax (multinomial logistic regression).</dd>
+        <dt>Where</dt><dd>Credit scoring, clinical risk scores, any regulated setting where every coefficient must be defensible. The standard baseline for classification.</dd>
+        <dt>Explain</dt><dd>A weight is "change in log-odds per unit of feature"; <code>e<sup>w</sup></code> is the odds ratio. The intercept <i>b</i> is the log prior odds when features are zero (Primer B).</dd>
+        <dt>Imbalance</dt><dd>Same prior problem as everything else. <code>class_weight="balanced"</code> in scikit-learn shifts the intercept by roughly log w.</dd>
+        <dt>Wall</dt><dd>Log-odds must be a straight-line function of features. Thresholds ("risk jumps above age 60") and interactions ("only if both A and B") must be hand-built as features.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside><div class="year">1984</div>CART, Breiman et al.<br><span class="verdict v-maybe">Fixes: bias</span>
+      <svg class="mini" viewBox="0 0 120 70" aria-hidden="true"><line class="ax" x1="4" y1="66" x2="116" y2="66"/><g class="pt"><circle cx="10" cy="58" r="2.4"/><circle cx="22" cy="55" r="2.4"/><circle cx="34" cy="49" r="2.4"/><circle cx="46" cy="38" r="2.4"/><circle cx="58" cy="30" r="2.4"/><circle cx="70" cy="29" r="2.4"/><circle cx="82" cy="22" r="2.4"/><circle cx="94" cy="16" r="2.4"/><circle cx="106" cy="14" r="2.4"/></g><path class="fit" d="M6,54 H40 V32 H76 V17 H112"/></svg>
+    </aside>
+    <div>
+      <h3>Decision tree</h3>
+      <dl>
+        <dt>How</dt><dd>Repeatedly pick the single feature and cutoff that best separates the rows (lowest Gini impurity or entropy for classes, lowest squared error for numbers). Each leaf predicts its rows' majority class or average. The result is a step function.</dd>
+        <dt>Where</dt><dd>Rule-based decisions people need to read: eligibility, triage, policy rules.</dd>
+        <dt>Why needed</dt><dd>Finds thresholds and interactions automatically, handles mixed feature types, needs no scaling.</dd>
+        <dt>Wall</dt><dd><b>High variance.</b> A deep tree memorizes training data, and changing a few rows can produce a completely different tree.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside><div class="year">2001</div>Breiman<br><span class="verdict v-maybe">Fixes: variance</span>
+      <svg class="mini" viewBox="0 0 120 70" aria-hidden="true"><line class="ax" x1="4" y1="66" x2="116" y2="66"/><path class="faint" d="M6,56 H30 V36 H66 V20 H112"/><path class="faint" d="M6,52 H46 V30 H86 V15 H112"/><path class="faint" d="M6,57 H38 V34 H72 V24 H96 V13 H112"/><path class="fit" d="M6,55 H30 V50 H38 V45 H46 V33 H66 V29 H72 V24 H86 V18 H96 V14 H112"/></svg>
+    </aside>
+    <div>
+      <h3>Random forest</h3>
+      <dl>
+        <dt>How</dt><dd>Grow hundreds of deep trees, each on a <b>bootstrap sample</b> (rows drawn with replacement), and at each split consider only a random subset of features. Average their predicted probabilities. The trees are independent, so their individual memorized noise averages out (this is "bagging").</dd>
+        <dt>Where</dt><dd>Strong, low-tuning default for tabular data; remote sensing, bioinformatics, quick baselines.</dd>
+        <dt>Why needed</dt><dd>Keeps the tree's flexibility while cutting its variance.</dd>
+        <dt>Imbalance</dt><dd>A bootstrap of 10,000 rows may hold only ~100 rare rows, so each tree sees little of them. <code>class_weight="balanced_subsample"</code> or imbalanced-learn's <code>BalancedRandomForestClassifier</code> (each tree gets a balanced sample) are the usual fixes.</dd>
+        <dt>Wall</dt><dd>Averaging reduces variance, not bias. Every tree is built independently, so no tree learns from the others' mistakes, and subtle patterns that need many small corrections get missed.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside><div class="year">2001 → 2016</div>Friedman; Chen &amp; Guestrin<br><span class="verdict v-yes">Fixes: bias, sequentially</span>
+      <svg class="mini" viewBox="0 0 120 70" aria-hidden="true"><line class="ax" x1="4" y1="66" x2="116" y2="66"/><g class="pt"><circle cx="10" cy="58" r="2.4"/><circle cx="22" cy="55" r="2.4"/><circle cx="34" cy="49" r="2.4"/><circle cx="46" cy="38" r="2.4"/><circle cx="58" cy="30" r="2.4"/><circle cx="70" cy="29" r="2.4"/><circle cx="82" cy="22" r="2.4"/><circle cx="94" cy="16" r="2.4"/><circle cx="106" cy="14" r="2.4"/></g><path class="faint" d="M6,46 H56 V24 H112"/><path class="fit" d="M6,57 H28 V52 H40 V42 H52 V31 H76 V22 H88 V16 H112"/></svg>
+    </aside>
+    <div>
+      <h3>Gradient boosting, then XGBoost</h3>
+      <dl>
+        <dt>How</dt><dd>Instead of independent deep trees, add <b>shallow trees one after another</b>, each fit to the current model's errors, and sum them. The faint line in the sketch is the first tree; the bold one is after several corrections.</dd>
+        <dt>The link</dt><dd>For squared error the gradient is <code>ŷ − y</code>, the residual from linear regression. For log loss it's <code>p − y</code>, the same form as logistic regression. So boosting is <b>logistic regression where the straight-line score is replaced by a sum of trees</b>. The score is still log-odds.</dd>
+        <dt>XGBoost added</dt><dd>Second-order information (the hessian), explicit regularization (<code>lambda</code>, <code>gamma</code>), built-in missing-value handling, and fast parallel split finding. LightGBM (2017) and CatBoost (2018) are later variants of the same idea.</dd>
+        <dt>Where</dt><dd>The go-to for structured/tabular data in industry and most tabular Kaggle wins.</dd>
+        <dt>Explain</dt><dd>Not by reading weights, but SHAP values give exact per-row, per-feature contributions to the log-odds score, the same units as a logistic coefficient.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <div class="bridge">
+    <h3>The thread to keep</h3>
+    <ul>
+      <li>Logistic regression and XGBoost both output a <b>log-odds score</b> and both minimize <b>log loss</b>. Everything about priors in Primer B applies to both.</li>
+      <li>Random forest averages votes instead, so its "probabilities" are vote shares, usually less well calibrated, but the prior problem is the same.</li>
+      <li>For your data: logistic regression is a useful explainable baseline; if XGBoost doesn't beat it on macro-F1, the features, not the model, are the bottleneck.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="xgb" class="col">
+  <div class="eyebrow">Primer A</div>
+  <h2>A. How XGBoost trains</h2>
+  <p>Zooming into the last step of the lineage: what actually happens inside each boosting round.</p>
+
+  <h3>A tree outputs a number, not a class</h3>
+  <p>A single regression tree asks yes/no questions about features (<code>age &lt; 40?</code>, <code>balance &gt; 2,000?</code>) until it reaches a leaf. Each leaf holds a <b>score</b>, like +0.8 or -0.3. On its own, one tree is a crude step function.</p>
+
+  <h3>Boosting adds trees one at a time</h3>
+  <p>XGBoost starts with a constant guess and then adds trees, each one built to fix what the current model still gets wrong. The final score for a row is a sum:</p>
+  <div class="math">F(x) = base + η·tree<sub>1</sub>(x) + η·tree<sub>2</sub>(x) + … + η·tree<sub>M</sub>(x)</div>
+  <p><i>η</i> is the learning rate (e.g. 0.1). It shrinks each tree's contribution so no single tree dominates.</p>
+
+  <h3>Scores become probabilities with softmax</h3>
+  <p>With 3 classes, XGBoost keeps <b>three scores per row</b>, one per class, and each boosting round grows <b>one tree per class</b>. Softmax turns the scores into probabilities that sum to 1:</p>
+  <div class="math">p<sub>k</sub> = e<sup>F<sub>k</sub></sup> / (e<sup>F<sub>A</sub></sup> + e<sup>F<sub>B</sub></sup> + e<sup>F<sub>C</sub></sup>)</div>
+  <div class="flow" aria-label="Pipeline from features to probabilities">
+    <div class="box"><b>features x</b><span>one row</span></div><div class="arr">→</div>
+    <div class="box"><b>base + Σ trees</b><span>3 score tracks</span></div><div class="arr">→</div>
+    <div class="box"><b>F<sub>A</sub>, F<sub>B</sub>, F<sub>C</sub></b><span>raw scores (logits)</span></div><div class="arr">→</div>
+    <div class="box"><b>softmax</b><span>scores → probabilities</span></div><div class="arr">→</div>
+    <div class="box"><b>p<sub>A</sub>, p<sub>B</sub>, p<sub>C</sub></b><span>argmax → label</span></div>
+  </div>
+
+  <h3>"What's wrong" is the gradient</h3>
+  <p>For every row and every class, XGBoost computes two numbers from the log loss:</p>
+  <div class="math">g = p − y &nbsp;&nbsp;(gradient: which way to push, and how hard)<br>h = 2·p·(1 − p) &nbsp;&nbsp;(hessian: how confident / curved; XGBoost's multiclass form)</div>
+  <p><i>y</i> is 1 if the row really is that class, else 0. Example, looking only at class C's score track, where the model currently says p<sub>C</sub> = 0.01 everywhere:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Row's true class</th><th>p<sub>C</sub></th><th>y<sub>C</sub></th><th>g<sub>C</sub></th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="rar">C</td><td>0.01</td><td>1</td><td>−0.99</td><td>"Raise my C score a lot"</td></tr>
+      <tr><td class="maj">A</td><td>0.01</td><td>0</td><td>+0.01</td><td>"Lower my C score a tiny bit"</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>How a tree picks splits and leaf values</h3>
+  <p>A leaf's value comes from the sums of <i>g</i> and <i>h</i> of the rows that land in it (call them <i>G</i> and <i>H</i>; <i>λ</i> is L2 regularization, default 1):</p>
+  <div class="math">leaf value = −G / (H + λ)</div>
+  <p>A split is kept if it increases this gain by more than <i>γ</i> (the <code>gamma</code> parameter):</p>
+  <div class="math">gain = ½ · [ G<sub>L</sub>²/(H<sub>L</sub>+λ) + G<sub>R</sub>²/(H<sub>R</sub>+λ) − (G<sub>L</sub>+G<sub>R</sub>)²/(H<sub>L</sub>+H<sub>R</sub>+λ) ] − γ</div>
+  <p>In plain terms: a split is good when it separates rows that want to be pushed <i>up</i> from rows that want to be pushed <i>down</i>. If the rows in a region pull in opposite directions and cancel out, <i>G</i> ≈ 0 and the tree sees nothing to fix there.</p>
+
+  <h3>Where imbalance bites, in this machinery</h3>
+  <ul>
+    <li><b>Cancellation.</b> Take a region with 10 <span class="rar">C</span> rows and 990 <span class="maj">A</span> rows. On C's track: <code>G = 10·(−0.99) + 990·(+0.01) = −9.9 + 9.9 = 0</code>. The many small majority gradients exactly cancel the few big rare ones, so no tree splits there. This isn't a bug: in that region C really is 1%, so p<sub>C</sub> = 0.01 is the correct answer. Primer B explains why.</li>
+    <li><b><code>min_child_weight</code> blocks small rare leaves.</b> A leaf needs <i>H</i> ≥ <code>min_child_weight</code> (default 1). Ten C rows at p = 0.01 have <code>H = 10 · 2 · 0.01 · 0.99 ≈ 0.2</code>, so a leaf holding just those rows is <i>not allowed</i>. You'd need about 50 of them. A non-obvious knob worth lowering for rare classes.</li>
+    <li><b><code>sample_weight</code> is just a multiplier on g and h.</b> Weight 5 on a row means its <i>g</i> and <i>h</i> count 5×. That's the whole mechanism: it breaks the cancellation above and gets past <code>min_child_weight</code>.</li>
+  </ul>
+</section>
+
+<section id="bayes" class="col">
+  <div class="eyebrow">Primer B</div>
+  <h2>B. Priors, likelihoods and posteriors</h2>
+
+  <h3>Three quantities</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Name</th><th>Notation</th><th>Question it answers</th><th>In your data</th></tr></thead>
+    <tbody>
+      <tr><td><b>Prior</b></td><td>P(C)</td><td>Before looking at this row, how common is C?</td><td>1% (100 of 10,000)</td></tr>
+      <tr><td><b>Likelihood</b></td><td>P(x | C)</td><td>If a row is C, how typical are these features?</td><td>Learned from the 100 C rows</td></tr>
+      <tr><td><b>Posterior</b></td><td>P(C | x)</td><td>Given these features, how likely is this row C?</td><td>What you want the model to output</td></tr>
+    </tbody>
+  </table></div>
+  <p>The likelihood and posterior read alike but are different things. "Most C rows have this pattern" is not the same as "most rows with this pattern are C".</p>
+
+  <h3>Count it out</h3>
+  <p>10,000 rows. 100 are <span class="rar">C</span>, 9,900 are not. A feature pattern shows up in 50% of C rows and in 5% of the others. So this pattern is <b>10× more typical of C</b>.</p>
+  <div class="freq" role="img" aria-label="50 of 100 C rows and 495 of 9900 other rows have the pattern">
+    <div class="freq-row"><div><span class="rar">C</span> rows: 100</div>
+      <div class="freq-bar" style="width:1.01%; min-width:14px"><div style="flex:50; background:var(--rare)"></div><div style="flex:50; background:var(--rare-soft)"></div></div></div>
+    <div class="freq-row"><div><span class="maj">Others</span>: 9,900</div>
+      <div class="freq-bar"><div style="flex:495; background:var(--major)"></div><div style="flex:9405; background:var(--major-soft)"></div></div></div>
+    <div class="freq-row"><div>Rows with pattern: 545</div>
+      <div class="freq-bar"><div style="flex:50; background:var(--rare)"></div><div style="flex:495; background:var(--major)"></div></div></div>
+  </div>
+  <p>Of the 545 rows with the pattern, only 50 are C: <b>50 / 545 ≈ 9%</b>. Bayes' rule is just this counting written as a formula:</p>
+  <div class="math">P(C | x) = P(x | C)·P(C) / P(x) = (0.50 × 0.01) / (0.50 × 0.01 + 0.05 × 0.99) ≈ 0.09</div>
+
+  <h3>The odds form, which is what XGBoost uses</h3>
+  <p>Odds are p / (1 − p). Bayes' rule becomes a multiplication:</p>
+  <div class="math">posterior odds = prior odds × likelihood ratio &nbsp;&nbsp;→&nbsp;&nbsp; (1/99) × 10 = 10/99 &nbsp;→&nbsp; p = 10/109 ≈ 9%</div>
+  <p>Take logs and it becomes addition:</p>
+  <div class="math">log posterior odds = log prior odds + log likelihood ratio</div>
+  <p>Look back at Primer A: XGBoost's raw scores are log-odds (the gap between two classes' scores is their log-odds). The starting score plays the role of the <b>log prior odds</b>, and each tree adds a bit of <b>log evidence</b> from the features. Boosting is Bayes' rule in log space, learned piece by piece.</p>
+
+  <h3>Why this hides the rare classes</h3>
+  <p>A model trained with log loss is trying to output the true posterior. The prior it bakes in is the class mix <em>in your training data</em>. For <code>argmax</code> to pick C over A, the posterior for C has to be the largest, which with a 1% prior needs features about 99× more typical of C than of A. Most real C rows don't have evidence that strong, so they get labeled A, even though the model's 9% may be perfectly accurate.</p>
+
+  <div class="bridge">
+    <h3>How this connects to the rest of the page</h3>
+    <ul>
+      <li><b>Class weight w</b> multiplies C's gradients (Primer A), so the model behaves as if C's prior odds were w× larger. That adds log w to C's score.</li>
+      <li><b>Threshold multiplier w</b> on p<sub>C</sub> also adds log w to C's score, but after training. Same move, no retraining. That's <a href="#idea">section 3</a>.</li>
+      <li><b>Better features</b> raise the <i>likelihood ratio</i>, the only term that actually makes the model more sure. That's the separation slider in the <a href="#lab">lab</a>.</li>
+      <li><b>Calibration</b> checks that the posterior the model outputs matches real frequencies. Weighting breaks that, because the model is now using a fake prior.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="why" class="col">
+  <div class="eyebrow">First principles</div>
+  <h2>1. Why the rare classes lose</h2>
+  <p>Take a dataset of 10,000 rows split like this:</p>
+  <div class="split" role="img" aria-label="96 percent class A, 3 percent class B, 1 percent class C">
+    <div class="a">A · 96%</div><div class="b"></div><div class="c"></div>
+  </div>
+  <div class="legend"><span class="maj">A</span> 9,600 rows · <span class="rar">B</span> 300 rows · <span class="rar">C</span> 100 rows</div>
+
+  <h3>Reason 1: the loss is an average over rows</h3>
+  <p>XGBoost minimizes log loss averaged over every training row. Every row gets one equal vote. A model that has learned <em>nothing</em> and just outputs the class proportions (0.96, 0.03, 0.01) for every row already scores:</p>
+  <div class="math">accuracy = 96% &nbsp;&nbsp; log loss = -(0.96·ln 0.96 + 0.03·ln 0.03 + 0.01·ln 0.01) ≈ 0.19</div>
+  <p>Getting B and C right moves that average only a little, because they are 4% of the votes. Each tree split is chosen by how much it reduces total loss, so splits that carve out the majority win the early rounds. The rare classes get attention only once the majority has nothing left to give.</p>
+
+  <h3>Reason 2: Bayes' rule pulls rare probabilities down</h3>
+  <p>Even a perfect model outputs the <em>true</em> posterior probability, and that includes the prior:</p>
+  <div class="math">P(C | x) = P(x | C)·P(C) / Σ<sub>k</sub> P(x | k)·P(k)</div>
+  <p>Say a row's features are 10× more typical of <span class="rar">C</span> than of <span class="maj">A</span>. With a 1% prior:</p>
+  <div class="math">P(C | x) = (10 × 0.01) / (10 × 0.01 + 1 × 0.99) ≈ 0.09</div>
+  <p>The evidence strongly favors C, and the honest answer is still "9% C". Predicting with <code>argmax</code> picks A. So the model is often <em>not wrong</em>. Its probabilities can be fine; it's the decision rule (argmax, which implicitly means "pick C only above ~50%") that hides the rare classes.</p>
+
+  <h3>Reason 3: rare classes have few examples to learn from</h3>
+  <p>100 rows of C means the model sees only a thin sample of what C looks like, and a handful of mislabeled C rows is a big share of that sample. This is the one problem no training trick fixes; only more or better data and features do.</p>
+
+  <div class="callout">So there are two separate problems. <b>Separability</b>: how much the classes overlap in feature space (fixed by data and features). <b>The decision rule</b>: where you draw the line inside that overlap (fixed by weights, thresholds, resampling). The lab below lets you feel the difference.</div>
+</section>
+
+<section id="lab" class="wide">
+  <div class="col" style="max-width:68ch">
+    <div class="eyebrow">Interactive</div>
+    <h2>2. The boundary lab</h2>
+    <p>One feature, two classes: <span class="maj">majority</span> and <span class="rar">rare</span>. Filled areas are how many rows of each class sit at each feature value (true scale). The vertical line is where the model switches its prediction to "rare". The dashed curve is the rare class after multiplying it by the weight <i>w</i>.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-grid">
+      <div>
+        <div class="chart-wrap"><svg id="chart" viewBox="0 0 600 270" width="100%" role="img" aria-label="Class density chart with decision boundary"></svg></div>
+        <div class="controls">
+          <div class="ctl">
+            <label for="sPrior">Rare class share <b id="oPrior"></b></label>
+            <input id="sPrior" type="range" min="0" max="100" value="38">
+            <small>How rare the class is in your data.</small>
+          </div>
+          <div class="ctl">
+            <label for="sSep">Separation (feature quality) <b id="oSep"></b></label>
+            <input id="sSep" type="range" min="50" max="400" value="200">
+            <small>Distance between class centers. Better features push this up.</small>
+          </div>
+          <div class="ctl">
+            <label for="sW">Rare class weight / threshold shift <i>w</i> <b id="oW"></b></label>
+            <input id="sW" type="range" min="0" max="100" value="0">
+            <small>Class weight, oversampling ratio, or threshold multiplier. All three move the same line.</small>
+          </div>
+        </div>
+      </div>
+      <div class="stats" aria-live="polite">
+        <div class="stat"><div class="k">Rare recall</div><div class="v rar" id="vRec"></div></div>
+        <div class="stat"><div class="k">Rare precision</div><div class="v rar" id="vPrec"></div></div>
+        <div class="stat"><div class="k">Rare F1</div><div class="v" id="vF1"></div></div>
+        <div class="stat"><div class="k">Accuracy</div><div class="v" id="vAcc"></div></div>
+        <div class="stat full">
+          <div class="k">Per 10,000 rows</div>
+          <div class="counts">
+            <span id="cTot"></span> rare rows exist<br>
+            <span id="cTP"></span> caught<br>
+            <span id="cFN"></span> missed<br>
+            <span id="cFP"></span> majority rows wrongly flagged
+          </div>
+        </div>
+        <div class="stat full">
+          <div class="k">Best rare F1 reachable at this separation</div>
+          <div class="v" id="vBest"></div>
+          <div class="counts" id="vBestW"></div>
+        </div>
+      </div>
+    </div>
+    <ol class="try">
+      <li>Leave <i>w</i> at 1. Recall is low and accuracy is high. This is your model today.</li>
+      <li>Drag <i>w</i> up. Recall climbs, precision falls. You are trading false alarms for catches.</li>
+      <li>Now raise <b>separation</b>. The "best F1 reachable" number jumps. No setting of <i>w</i> can do that.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="idea" class="col">
+  <div class="eyebrow">The one big idea</div>
+  <h2>3. Weights, resampling and thresholds are the same knob</h2>
+  <p>Give the rare class weight <i>w</i> during training. In the limit of enough data, the model learns a distorted posterior where the rare class's prior is multiplied by <i>w</i>:</p>
+  <div class="math">P<sub>w</sub>(rare | x) ∝ w · P(x | rare) · P(rare)</div>
+  <p>Taking <code>argmax</code> of that is exactly the same as training normally and taking <code>argmax(p · [1, w])</code>. Oversampling the rare class <i>w</i> times does the same thing too, since it's the same as giving each copy weight 1. So:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Technique</th><th>What it changes</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Class weights</td><td>Moves the boundary at training time</td><td>Retrain to change it; probabilities are distorted</td></tr>
+      <tr><td>Oversampling / SMOTE</td><td>Moves the boundary at training time</td><td>Retrain, bigger data, leakage risk in CV</td></tr>
+      <tr><td>Undersampling</td><td>Moves the boundary, throws away majority data</td><td>Loses information</td></tr>
+      <tr><td>Threshold multipliers</td><td>Moves the boundary after training</td><td>Seconds, probabilities stay honest</td></tr>
+      <tr><td>Better features / clean labels</td><td><b>Pulls the curves apart</b></td><td>Thinking time</td></tr>
+    </tbody>
+  </table></div>
+  <p>With finite data, weighting isn't quite identical to thresholding: it also makes the tree builder pay more attention to rare rows when choosing splits, which can help a bit. That's why mild weights plus a tuned threshold is a common combination. But the big wins come from the last row.</p>
+</section>
+
+<section id="methods" class="col">
+  <div class="eyebrow">The toolbox</div>
+  <h2>4. The methods</h2>
+  <p>Each one: how it works, where people use it, how to do it in XGBoost, and whether the evidence says it's worth it for boosted trees.</p>
+
+  <article class="method">
+    <aside>Data side<br><span class="verdict v-yes">Biggest lever</span></aside>
+    <div>
+      <h3>Better features and clean labels</h3>
+      <dl>
+        <dt>How</dt><dd>Look at the confusion matrix and pull out rows where B is predicted as A, or C as B. Ask a domain expert what distinguishes them that your features don't capture. Separately, find likely mislabeled rare rows (a rare row the model is very confident is majority is often a labeling error).</dd>
+        <dt>Where</dt><dd>Every winning write-up. The PLAsTiCC Kaggle winner (14 heavily imbalanced classes) won on feature engineering and training-set augmentation, not resampling.</dd>
+        <dt>Why</dt><dd>It's the only thing that raises the ceiling. In the lab, this is the separation slider.</dd>
+      </dl>
+<pre># flag likely label errors using out-of-fold probabilities
+from cleanlab.filter import find_label_issues
+issues = find_label_issues(labels=y, pred_probs=oof_proba,
+                           return_indices_ranked_by="self_confidence")</pre>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside>Post-training<br><span class="verdict v-yes">Highest ROI trick</span></aside>
+    <div>
+      <h3>Per-class threshold multipliers</h3>
+      <dl>
+        <dt>How</dt><dd>Get out-of-fold probabilities (each row predicted by a model that never saw it). Search for multipliers <code>[1, w_B, w_C]</code> that maximize macro-F1 of <code>argmax(proba · w)</code>. Apply the same multipliers at inference.</dd>
+        <dt>Where</dt><dd>Standard in competitions and production. A 30-dataset study found threshold tuning the most consistently effective option against SMOTE and weights (binary tasks).</dd>
+        <dt>Watch</dt><dd>Never tune on the same rows you trained on. With very few rare rows, the chosen multiplier is noisy; use repeated CV and prefer a round value in a flat region of the F1 curve.</dd>
+      </dl>
+<pre>oof = cross_val_predict(model, X, y, cv=StratifiedKFold(5, shuffle=True),
+                        method="predict_proba")
+best = max(((wb, wc) for wb in np.geomspace(1, 50, 30)
+                     for wc in np.geomspace(1, 50, 30)),
+           key=lambda w: f1_score(y, np.argmax(oof * [1, *w], 1), average="macro"))</pre>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside>Training time<br><span class="verdict v-yes">Use mildly</span></aside>
+    <div>
+      <h3>Class / sample weights</h3>
+      <dl>
+        <dt>How</dt><dd>Each row's loss and gradient get multiplied by its weight, so a rare row counts as <i>w</i> rows. "Balanced" weight = total / (n_classes × class_count). "Square root balanced" takes the square root of that, a gentler push.</dd>
+        <dt>Where</dt><dd>XGBoost: pass <code>sample_weight</code> to <code>fit</code> (<code>scale_pos_weight</code> only works for binary). LightGBM: <code>class_weight</code>. CatBoost: <code>auto_class_weights="SqrtBalanced"</code>.</dd>
+        <dt>Also</dt><dd>Lower <code>min_child_weight</code> (e.g. 0.1 to 0.5) so leaves can form around small groups of rare rows (see <a href="#xgb">Primer A</a>).</dd>
+        <dt>Watch</dt><dd>Probabilities come out inflated for rare classes. Clinical prediction studies found weighting hurt calibration without improving ranking (AUC). If you need real probabilities, recalibrate.</dd>
+      </dl>
+<pre>from sklearn.utils.class_weight import compute_sample_weight
+w = compute_sample_weight("balanced", y_train) ** 0.5   # sqrt-balanced
+model.fit(X_train, y_train, sample_weight=w)</pre>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside>Post-training<br><span class="verdict v-maybe">If you need probabilities</span></aside>
+    <div>
+      <h3>Probability calibration</h3>
+      <dl>
+        <dt>How</dt><dd>Fit a small mapping from the model's scores to observed frequencies on held-out data. Sigmoid (Platt) fits 2 parameters; isotonic fits a step function and needs more data.</dd>
+        <dt>Where</dt><dd>Anywhere the probability itself is used: risk scores, expected cost, ranking for review queues. Not needed if you only output a class label.</dd>
+        <dt>Watch</dt><dd>With ~100 rare rows, isotonic overfits. Use sigmoid.</dd>
+      </dl>
+<pre>from sklearn.calibration import CalibratedClassifierCV
+cal = CalibratedClassifierCV(model, method="sigmoid", cv=5).fit(X, y)</pre>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside>Training time<br><span class="verdict v-maybe">Try later</span></aside>
+    <div>
+      <h3>Problem decomposition</h3>
+      <dl>
+        <dt>How</dt><dd><b>Two-stage</b>: model 1 predicts A vs "not A"; model 2, trained only on B and C rows, picks B vs C. <b>One-vs-rest</b>: three binary models, one per class, each with its own threshold.</dd>
+        <dt>Where</dt><dd>Fraud and medical triage pipelines (screen, then classify). Useful when B and C are confused with each other more than with A, since model 2 can focus on what separates them.</dd>
+        <dt>Bonus</dt><dd>Cleaner explainability: SHAP values per binary model answer "why rare?" and "why B not C?" separately.</dd>
+        <dt>Watch</dt><dd>No strong head-to-head evidence that it beats one softmax model. Compare on out-of-fold macro-F1.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside>Training time<br><span class="verdict v-maybe">Try later</span></aside>
+    <div>
+      <h3>Focal loss</h3>
+      <dl>
+        <dt>How</dt><dd>Replaces log loss with <code>-(1-p)<sup>γ</sup> · log p</code>, where <i>p</i> is the probability of the true class. Rows the model already gets right (p near 1) contribute almost nothing, so training focuses on hard rows, which are disproportionately rare-class rows.</dd>
+        <dt>Where</dt><dd>Came from object detection (RetinaNet). For boosted trees it needs a custom objective with hand-written gradient and hessian; a 2024 study and package exist.</dd>
+        <dt>Watch</dt><dd>Moderate evidence, extra tuning (γ), and it also distorts probabilities. After weights and thresholds, not before.</dd>
+      </dl>
+    </div>
+  </article>
+
+  <article class="method">
+    <aside>Training time<br><span class="verdict v-no">Mostly skip</span></aside>
+    <div>
+      <h3>Resampling: SMOTE, oversampling, undersampling</h3>
+      <dl>
+        <dt>How</dt><dd><b>Random oversampling</b> duplicates rare rows. <b>SMOTE</b> creates synthetic rare rows by picking a rare row, one of its nearest rare neighbors, and interpolating a point on the line between them. <b>Undersampling</b> drops majority rows.</dd>
+        <dt>Where</dt><dd>Popular in tutorials and with weak learners (logistic regression, single trees, SVMs).</dd>
+        <dt>Why skip</dt><dd>A 73-dataset study (Elor &amp; Averbuch-Elor, 2022) found balancing doesn't help strong learners like XGBoost, LightGBM, CatBoost; threshold tuning matched it, and plain duplication matched SMOTE. From section 3, it's just a slower way to move the boundary. SMOTE can also invent points in regions that belong to the majority, and its interpolation is meaningless for categorical features.</dd>
+        <dt>If you do</dt><dd>Resample inside each CV training fold only, never the validation fold, using <code>imblearn.pipeline.Pipeline</code>. Resampling before splitting leaks copies of validation rows into training.</dd>
+      </dl>
+    </div>
+  </article>
+</section>
+
+<section id="measure" class="col">
+  <div class="eyebrow">Evaluation</div>
+  <h2>5. Measuring it honestly</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Metric</th><th>Use it?</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Accuracy</td><td>No</td><td>96% for a model that never predicts B or C.</td></tr>
+      <tr><td>Macro ROC-AUC</td><td>Careful</td><td>Counts true negatives, which are plentiful, so it looks good even when rare precision is terrible.</td></tr>
+      <tr><td>Per-class precision, recall, F1</td><td>Yes</td><td>Shows exactly which class fails and how.</td></tr>
+      <tr><td>Macro-F1</td><td>Yes, as the headline</td><td>Averages F1 across classes equally, so B and C count as much as A.</td></tr>
+      <tr><td>Per-class PR-AUC (average precision)</td><td>Yes</td><td>Threshold-free view of how well the model ranks each rare class.</td></tr>
+      <tr><td>Confusion matrix</td><td>Always</td><td>Tells you whether B is lost to A or to C, which drives the fix.</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Stratified K-fold</b> keeps each class's share the same in every fold; without it, a fold can end up with 5 C rows or zero. With under ~100 rows in a rare class, repeat the CV with different seeds and look at the spread, since one fold's F1 is noisy. Everything you tune (thresholds, calibration, resampling) is fit inside the folds.</p>
+</section>
+
+<section id="plan" class="col">
+  <div class="eyebrow">Recommended order</div>
+  <h2>6. What to do, in order</h2>
+  <ol class="pipeline">
+    <li><b>Baseline.</b> Unweighted XGBoost, stratified 5-fold, save out-of-fold probabilities. Record per-class PR-AUC, macro-F1 and the confusion matrix.</li>
+    <li><b>Thresholds.</b> Tune per-class multipliers on those OOF probabilities. This alone often closes much of the gap for free.</li>
+    <li><b>Look at the errors.</b> Inspect misclassified rare rows. Check for label errors. Engineer features that separate the confused pairs. Re-run 1 and 2.</li>
+    <li><b>Mild weights.</b> Square-root balanced <code>sample_weight</code>, re-tune thresholds, keep it only if OOF macro-F1 improves.</li>
+    <li><b>Calibrate</b> (sigmoid) if anyone consumes the probabilities.</li>
+    <li><b>Optional:</b> two-stage or one-vs-rest models, focal loss. SMOTE only if it beats everything above on OOF macro-F1.</li>
+  </ol>
+  <p class="src">Sources: Elor &amp; Averbuch-Elor 2022, <a href="https://arxiv.org/abs/2201.08528">arXiv:2201.08528</a> · threshold vs. resampling study, <a href="https://arxiv.org/abs/2409.19751">arXiv:2409.19751</a> · weighting and calibration, <a href="https://www.arxiv.org/pdf/2404.19494">arXiv:2404.19494</a> · focal / class-balanced loss for GBDT, <a href="https://arxiv.org/abs/2407.14381">arXiv:2407.14381</a> · PLAsTiCC winner, <a href="https://arxiv.org/abs/1907.04690">arXiv:1907.04690</a> · <a href="https://scikit-learn.org/stable/modules/classification_threshold.html">scikit-learn threshold docs</a> · <a href="https://lightgbm.readthedocs.io/en/latest/Parameters.html">LightGBM params</a> · <a href="https://catboost.ai/docs/en/references/training-parameters/common#auto_class_weights">CatBoost auto_class_weights</a>.</p>
+</section>
+</main>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const sPrior = $("sPrior"), sSep = $("sSep"), sW = $("sW"), svg = $("chart");
+  const NS = "http://www.w3.org/2000/svg";
+  const W = 600, H = 270, padL = 12, padR = 12, padT = 16, padB = 34;
+
+  // Abramowitz-Stegun 7.1.26 erf approximation
+  function erf(x) {
+    const s = Math.sign(x); x = Math.abs(x);
+    const t = 1 / (1 + 0.3275911 * x);
+    const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return s * y;
+  }
+  const Phi = z => 0.5 * (1 + erf(z / Math.SQRT2));
+  const phi = z => Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI);
+
+  const priorOf = v => 0.005 * Math.pow(40, v / 100);   // 0.5% .. 20%
+  const weightOf = v => Math.pow(200, v / 100);         // 1 .. 200
+  const sepOf = v => v / 100;                           // 0.5 .. 4
+
+  /** Metrics for majority ~ N(0,1), rare ~ N(d,1), rare prior pi, rare weight w.
+   *  1. Rare is predicted when w*pi*f1(x) > (1-pi)*f0(x), i.e. x > t.
+   *  2. t = d/2 + ln((1-pi)/(w*pi)) / d.
+   *  3. Recall and false-positive rate come from normal tail areas beyond t. */
+  function metrics(pi, d, w) {
+    const t = d / 2 + Math.log((1 - pi) / (w * pi)) / d;
+    const rec = 1 - Phi(t - d);
+    const fpr = 1 - Phi(t);
+    const tp = pi * rec, fp = (1 - pi) * fpr;
+    const prec = tp + fp > 0 ? tp / (tp + fp) : 0;
+    const f1 = prec + rec > 0 ? 2 * prec * rec / (prec + rec) : 0;
+    const acc = (1 - pi) * (1 - fpr) + tp;
+    return { t, rec, fpr, prec, f1, acc, tp, fp };
+  }
+
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || svg).appendChild(e);
+    return e;
+  }
+
+  function draw(pi, d, w, m) {
+    svg.textContent = "";
+    const css = getComputedStyle(document.documentElement);
+    const cMaj = css.getPropertyValue("--major").trim(), cRare = css.getPropertyValue("--rare").trim();
+    const cMuted = css.getPropertyValue("--muted").trim(), cInk = css.getPropertyValue("--ink").trim();
+    const x0 = -3.5, x1 = d + 3.5;
+    const sx = x => padL + (x - x0) / (x1 - x0) * (W - padL - padR);
+    const peak = phi(0);
+    const ymax = peak * 1.1 * Math.min(Math.max(1 - pi, pi * w), 6 * Math.max(pi, pi * w));
+    const base = H - padB;
+    const sy = y => base - Math.min(y / ymax, 1.04) * (base - padT);
+    const N = 240, xs = [];
+    for (let i = 0; i <= N; i++) xs.push(x0 + (x1 - x0) * i / N);
+
+    const defs = el("defs", {});
+    const clip = el("clipPath", { id: "plotClip" }, defs);
+    el("rect", { x: 0, y: padT - 4, width: W, height: base - padT + 4 }, clip);
+    const g = el("g", { "clip-path": "url(#plotClip)" });
+
+    function area(f, from, to, fill, op) {
+      const pts = xs.filter(x => x >= from && x <= to);
+      if (from > x0) pts.unshift(from);
+      if (to < x1) pts.push(to);
+      if (pts.length < 2) return;
+      let dstr = `M${sx(pts[0])},${base}`;
+      pts.forEach(x => dstr += `L${sx(x)},${sy(f(x))}`);
+      dstr += `L${sx(pts[pts.length - 1])},${base}Z`;
+      el("path", { d: dstr, fill, "fill-opacity": op, stroke: "none" }, g);
+    }
+    function line(f, stroke, dash, width) {
+      let dstr = "";
+      xs.forEach((x, i) => dstr += (i ? "L" : "M") + sx(x) + "," + sy(f(x)));
+      el("path", { d: dstr, fill: "none", stroke, "stroke-width": width || 1.6, "stroke-dasharray": dash || "" }, g);
+    }
+    const fMaj = x => (1 - pi) * phi(x), fRare = x => pi * phi(x - d), fRareW = x => w * pi * phi(x - d);
+    const t = Math.max(x0, Math.min(x1, m.t));
+
+    area(fMaj, x0, t, cMaj, 0.16);
+    area(fMaj, t, x1, cMaj, 0.42);          // false alarms
+    area(fRare, x0, t, cRare, 0.45);        // missed
+    area(fRare, t, x1, cRare, 0.22);
+    line(fMaj, cMaj);
+    line(fRare, cRare);
+    if (w > 1.05) line(fRareW, cRare, "5 4", 1.4);
+
+    el("line", { x1: padL, x2: W - padR, y1: base, y2: base, stroke: cMuted, "stroke-width": 1 });
+    if (m.t > x0 && m.t < x1) {
+      el("line", { x1: sx(m.t), x2: sx(m.t), y1: padT - 6, y2: base, stroke: cInk, "stroke-width": 1.6 });
+      const lbl = el("text", { x: sx(m.t) + 5, y: padT + 6, fill: cInk });
+      lbl.textContent = "predict rare →";
+      if (sx(m.t) > W - 110) { lbl.setAttribute("x", sx(m.t) - 5); lbl.setAttribute("text-anchor", "end"); lbl.textContent = "← predict majority | rare →"; }
+    }
+    if ((1 - pi) * peak > ymax * 1.02) {
+      const t2 = el("text", { x: sx(0) + 6, y: padT + 6 });
+      t2.textContent = "majority continues ↑";
+    }
+    const ly = H - 12;
+    const lg = [["majority", cMaj, 0.42, "flagged by mistake"], ["rare", cRare, 0.45, "missed"]];
+    let lx = padL;
+    lg.forEach(([name, c, op, what]) => {
+      el("rect", { x: lx, y: ly - 9, width: 12, height: 10, fill: c, "fill-opacity": op });
+      const tx = el("text", { x: lx + 17, y: ly });
+      tx.textContent = `dark ${name} = ${what}`;
+      lx += 210;
+    });
+  }
+
+  const pct = v => (v * 100).toFixed(v < 0.1 ? 1 : 0) + "%";
+  const fmt = v => v.toFixed(2);
+  const cnt = v => Math.round(v).toLocaleString();
+
+  function update() {
+    const pi = priorOf(+sPrior.value), d = sepOf(+sSep.value), w = weightOf(+sW.value);
+    const m = metrics(pi, d, w);
+    $("oPrior").textContent = pct(pi);
+    $("oSep").textContent = d.toFixed(2) + " σ";
+    $("oW").textContent = "×" + (w < 10 ? w.toFixed(1) : Math.round(w));
+    $("vRec").textContent = pct(m.rec);
+    $("vPrec").textContent = pct(m.prec);
+    $("vF1").textContent = fmt(m.f1);
+    $("vAcc").textContent = pct(m.acc);
+    $("cTot").textContent = cnt(1e4 * pi);
+    $("cTP").textContent = cnt(1e4 * m.tp);
+    $("cFN").textContent = cnt(1e4 * (pi - m.tp));
+    $("cFP").textContent = cnt(1e4 * m.fp);
+    let best = { f1: -1, w: 1 };
+    for (let i = 0; i <= 400; i++) {
+      const ww = Math.pow(10, -1 + 4 * i / 400);
+      const mm = metrics(pi, d, ww);
+      if (mm.f1 > best.f1) best = { f1: mm.f1, w: ww };
+    }
+    $("vBest").textContent = fmt(best.f1);
+    $("vBestW").textContent = `at w ≈ ×${best.w < 10 ? best.w.toFixed(1) : Math.round(best.w)}`;
+    draw(pi, d, w, m);
+  }
+  [sPrior, sSep, sW].forEach(s => s.addEventListener("input", update));
+  if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", update);
+  new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  update();
+})();
+</script>

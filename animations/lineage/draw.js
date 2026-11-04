@@ -4,6 +4,7 @@ import { COLORS as C, FONTS } from "../../src/lib/theme";
 
 const FONT = { mono: FONTS.mono, display: FONTS.display, body: FONTS.body };
 let ctx = null;
+const TEXT_SCALE = 1.12; // Computer Modern has a small x-height; sizes below are in design px
 
 // ---------- math helpers ----------
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -161,7 +162,7 @@ function plot(px, py, pw, ph, xmin, xmax, ymin, ymax) {
 }
 function txt(s, x, y, o = {}) {
   alpha(o.alpha ?? 1);
-  ctx.font = `${o.weight || 400} ${o.size || 14}px ${FONT[o.font || "body"]}`;
+  ctx.font = `${o.weight || 400} ${Math.round((o.size || 14) * TEXT_SCALE)}px ${FONT[o.font || "body"]}`;
   ctx.fillStyle = o.color || C.ink; ctx.textAlign = o.align || "left"; ctx.textBaseline = "alphabetic";
   ctx.fillText(s, x, y);
 }
@@ -172,7 +173,7 @@ function seg(x1, y1, x2, y2, col, w = 1, a = 1, dash) {
 }
 function box(x, y, w, h, stroke, lw = 1, fill = C.panel, a = 1) {
   alpha(a); ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = lw;
-  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, 7) : ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.fill(); ctx.stroke();
 }
 function arrow(x1, y1, x2, y2, col, w, a) {
   const len = Math.hypot(x2 - x1, y2 - y1); if (len < 2) return;
@@ -203,13 +204,13 @@ function dots(P, pts, colFn, a = 1, r = 4.2) {
 function ring(x, y, r, col, a, w = 1.6) { alpha(a); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); }
 const classCol = p => p.y ? C.rare : C.major;
 function axes(P, yt) {
-  yt.forEach(v => { const y = P.Y(v); seg(P.px, y, P.px + P.pw, y, C.grid, 1, 1, [3, 4]); mono(String(v), P.px - 10, y + 4, { size: 12, color: C.muted, align: "right" }); });
+  yt.forEach(v => { const y = P.Y(v); seg(P.px, y, P.px + P.pw, y, C.grid, 1, 0.7); mono(String(v), P.px - 10, y + 4, { size: 12, color: C.muted, align: "right" }); });
   const yb = P.py + P.ph; seg(P.px, yb, P.px + P.pw, yb, C.muted, 1, 0.8);
   [0, 5, 10].forEach(v => mono(String(v), P.X(v), yb + 18, { size: 11, color: C.muted, align: "center" }));
   mono("feature x", P.px + P.pw, yb + 34, { size: 11, color: C.muted, align: "right" });
 }
 function insetFrame(P, label) {
-  box(P.px - 10, P.py - 30, P.pw + 20, P.ph + 52, C.grid, 1, C.panel);
+  seg(P.px, P.py, P.px, P.py + P.ph, C.muted, 1, 0.7); seg(P.px, P.py + P.ph, P.px + P.pw, P.py + P.ph, C.muted, 1, 0.7);
   mono(label, P.px, P.py - 12, { size: 11, color: C.muted });
 }
 
@@ -591,7 +592,7 @@ export function renderFrame(context, sceneIndex, t, scale) {
   ctx.fillStyle = C.stage; ctx.fillRect(0, 0, 960, 540);
   BASE = 1;
   const label = sceneIndex === 0 || sceneIndex === SC.length - 1 ? s.name : `${sceneIndex}. ${s.name}`;
-  txt(label, 60, 54, { font: "display", size: 28, weight: 700 });
+  txt(label, 60, 56, { font: "display", size: 32, weight: 500 });
   s.draw(t);
   ctx.globalAlpha = 1;
 }

@@ -3,7 +3,7 @@
 Narrated explainer videos. Claude writes the code; Remotion renders frames, Qwen3-TTS speaks, ffmpeg does any post work. One Remotion project, many animations: each lives in `animations/<slug>/` and is registered in `src/registry.ts`.
 
 ## Pins
-- remotion / @remotion/cli / @remotion/google-fonts 4.0.540 (keep all @remotion/* on the same exact version)
+- remotion / @remotion/cli / @remotion/fonts 4.0.540 (keep all @remotion/* on the same exact version)
 - react 19.3.1, typescript 7.0.2, node 26
 - Python 3.13 via uv, mlx-audio 0.6.4
 - TTS models: preset voice `mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit` (speakers Ryan, Aiden for English); cloning `mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16`
@@ -25,7 +25,8 @@ Narrated explainer videos. Claude writes the code; Remotion renders frames, Qwen
 ## Hard rules
 - Audio sets the timing. Each beat lasts its clip + 0.5 s (min 0.55 × its design window); the design-time window is stretched to fit. Never hardcode frame counts for narrated beats.
 - Every frame must be a pure function of the frame number: no `Math.random` (use seeded RNG), no `Date`, no timers, no requestAnimationFrame.
-- Canvas text needs fonts loaded first. Use `CanvasStage`, which holds the render until `fontsLoaded` resolves. Font family for Source Serif is "Source Serif Four"; always use `FONTS` from `src/lib/theme.ts`, never hardcode family names.
+- House style is 3Blue1Brown-like: pure black, Manim's palette (`COLORS` in `src/lib/theme.ts`, hex values are Manim constants), Computer Modern (CMU Serif, OFL, files in `public/fonts/`) for all text, outlines instead of filled cards, plain centered subtitles. No 3b1b logo or characters.
+- Canvas text needs fonts loaded first. Use `CanvasStage`, which holds the render until `fontsLoaded` resolves. Always use `FONTS` from `src/lib/theme.ts`, never hardcode family names. CMU Serif reads small: canvas scenes scale text sizes by `TEXT_SCALE` (1.12).
 - Don't add `"type": "module"` to package.json: it makes webpack require file extensions on imports from `.js` files.
 - Colors only from `COLORS` in `src/lib/theme.ts`.
 

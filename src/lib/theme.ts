@@ -1,21 +1,23 @@
-import { loadFont as loadDisplay } from "@remotion/google-fonts/BricolageGrotesque";
-import { loadFont as loadBody } from "@remotion/google-fonts/SourceSerif4";
-import { loadFont as loadMono } from "@remotion/google-fonts/JetBrainsMono";
+import { loadFont } from "@remotion/fonts";
+import { staticFile } from "remotion";
 
-/** Shared palette for every animation: dark "screening room" stage. */
+/**
+ * House style: Manim's palette (the library behind 3Blue1Brown) on pure black,
+ * with Computer Modern (CMU Serif) for all text. Hex values are Manim's own constants.
+ */
 export const COLORS = {
-  stage: "#121d2a",
-  panel: "#172434",
-  ink: "#e6edf3",
-  muted: "#8b9db0",
-  grid: "#26384b",
-  major: "#7fb0d1",
-  rare: "#f08a4b",
-  gold: "#e3c065",
-  good: "#6cc391",
+  stage: "#000000", // BLACK
+  panel: "#000000", // no filled cards; shapes are outlines on black
+  ink: "#FFFFFF", // WHITE: text, axes, main curves
+  muted: "#BBBBBB", // GREY_B: labels, secondary text
+  grid: "#236B8E", // BLUE_E: faint background lines
+  major: "#58C4DD", // BLUE_C: class 0 / majority
+  rare: "#FC6255", // RED_C: class 1 / rare, and walls
+  gold: "#F7D96F", // YELLOW_C: losses and highlights
+  good: "#83C167", // GREEN_C: fixes
 } as const;
 
-/** Caption chip color per narration phase. */
+/** Phase label color per narration phase. */
 export const PHASE_COLORS: Record<string, string> = {
   SCORE: COLORS.major,
   LOSS: COLORS.gold,
@@ -24,20 +26,19 @@ export const PHASE_COLORS: Record<string, string> = {
   OVERVIEW: COLORS.muted,
 };
 
-const display = loadDisplay("normal", { weights: ["500", "700"], subsets: ["latin", "latin-ext"] });
-const body = loadBody("normal", { weights: ["400", "600"], subsets: ["latin", "latin-ext"] });
-const mono = loadMono("normal", { weights: ["400", "600"], subsets: ["latin", "latin-ext", "greek"] });
-
-/** CSS font stacks, usable in both DOM styles and canvas `ctx.font`. */
-export const FONTS = {
-  display: `'${display.fontFamily}', Arial, sans-serif`,
-  body: `'${body.fontFamily}', Georgia, serif`,
-  mono: `'${mono.fontFamily}', Menlo, monospace`,
-};
+const FAMILY = "CMU Serif";
+const FACES: [file: string, weight: string, style: string][] = [
+  ["cmu-serif-500-roman.woff2", "500", "normal"],
+  ["cmu-serif-700-roman.woff2", "700", "normal"],
+  ["cmu-serif-500-italic.woff2", "500", "italic"],
+];
 
 /** Resolves once every font file has loaded (canvas text needs this before drawing). */
-export const fontsLoaded: Promise<unknown> = Promise.all([
-  display.waitUntilDone(),
-  body.waitUntilDone(),
-  mono.waitUntilDone(),
-]);
+export const fontsLoaded: Promise<unknown> = Promise.all(
+  FACES.map(([file, weight, style]) => loadFont({ family: FAMILY, url: staticFile(`fonts/${file}`), weight, style })),
+);
+
+const SERIF = `'${FAMILY}', 'Latin Modern Roman', Georgia, serif`;
+
+/** Font stacks, usable in both DOM styles and canvas `ctx.font`. All roles use Computer Modern. */
+export const FONTS = { display: SERIF, body: SERIF, mono: SERIF };
