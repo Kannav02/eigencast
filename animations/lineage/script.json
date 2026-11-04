@@ -1,0 +1,54 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher explaining an idea for the first time. Steady pace."
+  },
+  "beats": {
+    "s0b0": "Every model in this story is three choices. A score function, a loss, and a way to minimize that loss.",
+    "s0b1": "And each new model exists because the one before it hit a wall. So for each one, watch for four things: the score, the loss, the wall, and the fix.",
+
+    "s1b0": "Linear regression predicts a number as a weighted sum. Y hat equals w times x, plus b. Its score function is a straight line.",
+    "s1b1": "The loss is squared error. Each vertical gap is a residual, and each square is that residual, squared.",
+    "s1b2": "Training picks the w and b that make the total area of those squares as small as possible. For linear regression there's a direct formula, so no iteration is needed.",
+    "s1b3": "Now let's use it for a yes or no label, coded as zero or one.",
+    "s1b4": "The line predicts values below zero and above one. Those can't be probabilities. And a straight line can't bend to fit anything curved. That's the wall.",
+
+    "s2b0": "Logistic regression keeps the weighted sum, z equals w x plus b, but reads it as log odds.",
+    "s2b1": "Then the sigmoid squashes any z into a probability between zero and one. The straight line becomes an S curve.",
+    "s2b2": "The loss is log loss. Each row pays minus the log of the probability it gave to its true class. Bigger rings mean bigger penalties.",
+    "s2b3": "Confident and right costs almost nothing. Confident and wrong costs a lot. Remember this loss, because XGBoost uses the same one.",
+    "s2b4": "Starting from a flat guess, gradient descent nudges w and b downhill on log loss, until the curve fits.",
+    "s2b5": "Here's the wall. The log odds have to be a straight line in x. So give it a class that lives in the middle of the range...",
+    "s2b6": "...and the best S curve it can draw is nearly flat. It can't say high in the middle and low at both ends, unless you build that feature by hand.",
+
+    "s3b0": "A decision tree asks yes or no questions, like: is x less than three point six? Each leaf predicts the share of class one among its rows, so the score function is a step function.",
+    "s3b1": "The loss here is impurity. Gini impurity is zero for a pure leaf, and point five for a fifty fifty leaf.",
+    "s3b2": "Each split is chosen greedily. Try every possible cut, and keep the one that lowers the weighted Gini the most.",
+    "s3b3": "And it finds the bump in the middle, the one logistic regression couldn't, with no feature engineering at all.",
+    "s3b4": "The wall: let the tree grow deep, and it starts chasing every noisy label.",
+    "s3b5": "And if you retrain it on a slightly different sample of rows, you get a completely different tree. That's high variance. In other words, overfitting.",
+
+    "s4b0": "Random forest starts with bootstrap samples. Draw rows at random, with replacement. Some rows get drawn twice, and some never get drawn at all.",
+    "s4b1": "Grow a deep tree on each sample. The forest's score is just the average of every tree's prediction. That's the bold line.",
+    "s4b2": "There's no shared loss. Each tree minimizes Gini on its own sample, completely independently of the others.",
+    "s4b3": "Their random mistakes point in different directions, so they cancel out, and the variance drops.",
+    "s4b4": "The wall: no tree ever looks at what the others got wrong. So the mistakes they share survive the average. Those are circled.",
+    "s4b5": "To fix that, we need to build trees in sequence, each one aimed at whatever is still wrong.",
+
+    "s5b0": "In gradient boosting, the score is a sum of trees, in log odds. F of x is a base value, plus a small step from each tree. The base is the log prior odds, so the model starts flat, at the class share.",
+    "s5b1": "It uses the same log loss as logistic regression. Each row's gradient is p minus y. The arrows show how far each row wants its prediction to move.",
+    "s5b2": "Round one: fit a small tree to those gradients. Each leaf's value is minus G, over H plus lambda. The tree's output, scaled by the learning rate, gets added to F.",
+    "s5b3": "Then recompute the gradients and repeat. Rows that are already right stop pulling, and the rest keep pulling. Bias drops, one small tree at a time.",
+    "s5b4": "Forty shallow trees later, the curve fits the bump.",
+    "s5b5": "The wall: with deeper trees and more rounds, the training loss keeps falling, but the loss on held out rows turns back up. That's overfitting.",
+    "s5b6": "So XGBoost adds brakes. A learning rate, a maximum depth, lambda and gamma regularization, and early stopping at the best validation round.",
+
+    "s6b0": "Now, back to your problem. Say a region holds ten rare rows and nine hundred ninety majority rows, and the model gives the rare class a one percent chance there.",
+    "s6b1": "Each rare row pulls the rare score up, hard, with a gradient of minus point nine nine. Each majority row pushes it down just a little, with plus point zero one.",
+    "s6b2": "Add them up, and they cancel. Minus nine point nine, plus nine point nine, is zero. No tree splits here. The prior has won.",
+    "s6b3": "Now weight the rare rows by five, and the sum becomes minus thirty nine point six. The tree finally acts. A threshold shift does the same job, after training.",
+
+    "s7b0": "Here's the whole lineage on one screen. Each model's wall is exactly what the next one fixes."
+  }
+}
