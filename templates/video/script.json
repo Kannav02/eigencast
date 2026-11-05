@@ -1,0 +1,11 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher explaining an idea for the first time. Steady pace."
+  },
+  "beats": {
+    "s0b0": "A straight line is described by one equation. Y equals m times x, plus b.",
+    "s0b1": "The number m is the slope. Watch what happens as it grows: the line tilts upward."
+  }
+}
