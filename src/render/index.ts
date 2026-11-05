@@ -19,6 +19,13 @@ type Log = (msg: string) => void;
  */
 const chromeMode = "chrome-for-testing" as const;
 
+/**
+ * Chrome tabs rendering frames in parallel. Measured on an M4 Air (900 lineage frames):
+ * 1 tab 48 s / 850 MB, 2 tabs 65 s / 1.06 GB, 4 tabs 84 s / 1.4 GB. More tabs were slower
+ * and heavier, and Remotion's default (half the cores) helped freeze a 16 GB Mac.
+ */
+export const DEFAULT_CONCURRENCY = 1;
+
 async function bundleProject(project: Project, log: Log): Promise<string> {
   const entryPoint = writeEntry(project);
   log("bundling...");
@@ -50,7 +57,7 @@ export async function still(project: Project, video: Video, frame: number, out: 
 }
 
 /** Render the whole video to an mp4 (Remotion's bundled ffmpeg encodes it). */
-export async function render(project: Project, video: Video, out: string | undefined, log: Log) {
+export async function render(project: Project, video: Video, out: string | undefined, log: Log, concurrency = DEFAULT_CONCURRENCY) {
   const { serveUrl, composition } = await prepare(project, video, log);
   const output = out ?? join(project.root, "out", `${video.slug}.mp4`);
   mkdirSync(dirname(output), { recursive: true });
@@ -62,6 +69,7 @@ export async function render(project: Project, video: Video, out: string | undef
     outputLocation: output,
     imageFormat: "jpeg",
     chromeMode,
+    concurrency,
     onBrowserLog: browserLog(log),
     onProgress: ({ progress }) => {
       const pct = Math.floor(progress * 10) * 10;

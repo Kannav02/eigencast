@@ -50,7 +50,9 @@ export async function render(a: Args) {
   const project = findProject();
   const video = requireVideo(project, a.positional[0]);
   const out = flagStr(a, "out");
-  const r = await renderVideo(project, video, out && resolve(out), log);
+  const concurrency = flagNum(a, "concurrency");
+  if (concurrency !== undefined && !(Number.isInteger(concurrency) && concurrency >= 1)) throw new UserError("--concurrency needs a whole number of at least 1.");
+  const r = await renderVideo(project, video, out && resolve(out), log, concurrency);
   return { result: r, text: `wrote ${r.output} (${r.seconds.toFixed(1)}s, ${r.totalFrames} frames)` };
 }
 

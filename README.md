@@ -32,7 +32,7 @@ bunx eigencast doctor
 | `eigencast voice <slug> [--force] [--only s1b2]` | Record narration (only changed sentences) |
 | `eigencast info <slug>` | List beats with their frames and lengths |
 | `eigencast still <slug> --beat s1b2` | Render one frame to a PNG |
-| `eigencast render <slug>` | Render the mp4 |
+| `eigencast render <slug> [--concurrency N]` | Render the mp4 (1 Chrome tab by default; more was slower and heavier in testing) |
 | `eigencast preview` | Open Remotion Studio |
 | `eigencast doctor` | Check the setup |
 

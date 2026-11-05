@@ -73,6 +73,21 @@ describe("eigencast in a fresh project", () => {
     expect(statSync(out.output).size).toBeGreaterThan(20_000);
   }, 300_000);
 
+  test("render writes the full mp4 (silent before narration is recorded)", () => {
+    const r = eigencast("render", "starter");
+    expect(r.code).toBe(0);
+    const out = json(r);
+    expect(out.totalFrames).toBe(300);
+    expect(out.seconds).toBe(10);
+    expect(statSync(out.output).size).toBeGreaterThan(50_000);
+  }, 300_000);
+
+  test("render rejects a bad --concurrency", () => {
+    const r = eigencast("render", "starter", "--concurrency", "0");
+    expect(r.code).toBe(1);
+    expect(json(r).error).toContain("--concurrency");
+  });
+
   test("unknown video names the ones that exist", () => {
     const r = eigencast("still", "nope");
     expect(r.code).toBe(1);

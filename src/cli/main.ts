@@ -18,7 +18,7 @@ const COMMANDS: Record<string, Command> = {
   info: { run: info, usage: "info <slug>", about: "list beats with their frames and lengths" },
   voice: { run: voice, usage: "voice <slug> [--force] [--only s1b2 ...]", about: "record narration for changed beats" },
   still: { run: still, usage: "still <slug> [--beat s1b2 | --frame N | --at SECONDS] [--out file.png]", about: "render one frame to a PNG" },
-  render: { run: render, usage: "render <slug> [--out file.mp4]", about: "render the full video" },
+  render: { run: render, usage: "render <slug> [--out file.mp4] [--concurrency N]", about: "render the full video" },
   preview: { run: preview, usage: "preview", about: "open Remotion Studio to scrub through videos" },
   doctor: { run: doctor, usage: "doctor", about: "check the machine and project setup" },
 };
