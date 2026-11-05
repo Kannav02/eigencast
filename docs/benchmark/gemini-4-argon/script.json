@@ -1,0 +1,15 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher. Natural brisk pace."
+  },
+  "beats": {
+    "s0b0": "Unlike a straight line, a smooth curve changes its steepness from point to point.",
+    "s0b1": "At any single point, the tangent line just touches the curve and matches its direction.",
+    "s0b2": "The slope of this tangent line is the derivative, written f prime of x.",
+    "s1b0": "Slide the point along the curve: while it climbs, the tangent tilts up and the derivative is positive.",
+    "s1b1": "Right at the peak, the tangent line goes completely flat, so the derivative is zero.",
+    "s1b2": "Past the peak, the curve falls and the slope turns negative, tracing out the derivative function."
+  }
+}

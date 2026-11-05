@@ -1,0 +1,13 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher explaining an idea for the first time. Steady pace."
+  },
+  "beats": {
+    "s0b0": "The derivative of a function tells us how fast it changes at a point. Picture the curve y equals f of x, and one point on it.",
+    "s0b1": "The derivative at that point is the slope of the tangent line: the line that just grazes the curve there.",
+    "s1b0": "Watch the tangent line slide along the curve. Its slope changes from point to point.",
+    "s1b1": "That changing slope, written f prime of x, is the derivative: a new function, where each value is the slope of the curve."
+  }
+}

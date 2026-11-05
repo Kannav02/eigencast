@@ -1,0 +1,15 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher explaining an idea for the first time. Steady pace."
+  },
+  "beats": {
+    "s0b0": "Here's a curve, f of x equals x squared, and one point on it.",
+    "s0b1": "The derivative at that point is the slope of the tangent line, the line that just grazes the curve.",
+    "s0b2": "At x equals one, the tangent rises two for every one across, so the slope is two.",
+    "s1b0": "Slide the point along the curve, and the tangent slides with it.",
+    "s1b1": "On the left the slope is negative. At the bottom the tangent is flat, so the slope is zero.",
+    "s1b2": "Then it tilts up again. The derivative is that slope, at every point."
+  }
+}

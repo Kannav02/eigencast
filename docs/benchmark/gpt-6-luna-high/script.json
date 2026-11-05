@@ -1,0 +1,15 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher explaining an idea for the first time. Steady pace."
+  },
+  "beats": {
+    "s0b0": "A function draws a curve, and its steepness can change from place to place.",
+    "s0b1": "To measure it at one point, draw the line that just touches the curve there.",
+    "s0b2": "The slope of that tangent line tells us the function’s instantaneous rate of change.",
+    "s1b0": "Now slide the touching point along the curve; the tangent pivots as the curve bends.",
+    "s1b1": "At each position, its slope—and therefore the derivative—can be different.",
+    "s1b2": "So the derivative, f prime of x, is the slope of the tangent line at x."
+  }
+}
