@@ -1,8 +1,0 @@
-{
-  "name": "eigencast",
-  "version": "0.1.0",
-  "description": "Make narrated, Manim-style explainer videos with the eigencast CLI.",
-  "author": { "name": "Kannav02" },
-  "license": "MIT",
-  "keywords": ["video", "animation", "remotion", "tts", "explainer"]
-}

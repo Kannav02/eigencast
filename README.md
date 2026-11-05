@@ -30,7 +30,7 @@ Then open the folder in your agent and ask, for example: *"Make a 40 second vide
 
 ### Which agents
 
-- **Claude Code**: open the project folder and ask. The skill loads from `.claude/skills/`. Or install the plugin anywhere with `/plugin marketplace add Kannav02/eigencast`.
+- **Claude Code**: open the project folder and ask. The skill loads from `.claude/skills/`.
 - **OpenCode**: reads the same `.claude/skills/` folder and `AGENTS.md`, with no extra setup. Works with any model OpenCode can reach.
 - **Anything else**: point it at `AGENTS.md`.
 
