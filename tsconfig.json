@@ -11,7 +11,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "lib": ["DOM", "ES2022"]
+    "lib": ["DOM", "ES2022"],
+    "types": ["bun"],
+    "paths": { "eigencast/*": ["./src/*"] }
   },
-  "include": ["src", "animations"]
+  "include": ["src", "tests"]
 }

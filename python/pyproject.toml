@@ -1,0 +1,21 @@
+[project]
+name = "eigencast-voice"
+version = "0.1.0"
+description = "Narration for eigencast videos: Qwen3-TTS clips per beat, with change detection"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "mlx-audio==0.6.4",
+    "numpy",
+    "soundfile",
+]
+
+[project.scripts]
+eigencast-voice = "eigencast_voice.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["eigencast_voice"]

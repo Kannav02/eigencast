@@ -1,0 +1,15 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher explaining an idea for the first time. Steady pace."
+  },
+  "beats": {
+    "s0b0": "Here is a curve, y equals f of x. Its steepness keeps changing as we move along it.",
+    "s0b1": "Pick two points on the curve. The slope between them is the rise, delta y, over the run, delta x.",
+    "s0b2": "Now slide the second point toward the first. As the gap h shrinks to zero, this line becomes the tangent line.",
+    "s1b0": "Its slope is the derivative, f prime of a. How steep the curve is at one point.",
+    "s1b1": "Slide the point, and the tangent tilts with it. Climbing, the derivative is positive. Falling, it is negative.",
+    "s1b2": "And at the tops and bottoms, the tangent is flat. There, the derivative is zero."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "voice": {
+    "mode": "preset",
+    "speaker": "Ryan",
+    "instruct": "Calm, clear and friendly, like a good teacher explaining an idea for the first time. Steady pace."
+  },
+  "beats": {
+    "s0b0": "The derivative gives the slope of a curve at one exact point.",
+    "s0b1": "Draw the tangent line there, a straight line that just touches the curve. Slide the point along the curve, and the tangent slides with it.",
+    "s1b0": "For this curve, the slope at any x is 0.6 times x.",
+    "s1b1": "So it is negative on the left, zero at the bottom, and positive on the right.",
+    "s1b2": "That rule for every slope is the derivative of the function."
+  }
+}
