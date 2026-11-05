@@ -42,13 +42,19 @@ export function writeEntry(project: Project): string {
   return file;
 }
 
-/** Remotion config for `remotion studio`, which only takes webpack settings from a config file. */
+/**
+ * Remotion config for `remotion studio`, which only takes webpack settings from a config file.
+ * Remotion compiles config files to CommonJS, so this one can't import our ESM modules:
+ * it repeats the alias from webpackOverride with the package path written in.
+ */
 export function writeStudioConfig(project: Project): string {
   const file = join(project.workDir, "remotion.config.ts");
-  const entryModule = rel(project.workDir, join(PKG_ROOT, "src", "render", "entry.ts"));
+  const alias = JSON.stringify(join(PKG_ROOT, "src"));
   writeFileSync(
     file,
-    `import { Config } from "@remotion/cli/config";\nimport { webpackOverride } from "${entryModule}";\nConfig.overrideWebpackConfig(webpackOverride);\nConfig.setVideoImageFormat("jpeg");\n`,
+    `import { Config } from "@remotion/cli/config";\n` +
+      `Config.overrideWebpackConfig((c) => ({ ...c, resolve: { ...c.resolve, alias: { ...(c.resolve?.alias as object), eigencast: ${alias} } } }));\n` +
+      `Config.setVideoImageFormat("jpeg");\n`,
   );
   return file;
 }

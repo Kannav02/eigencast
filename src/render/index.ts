@@ -12,16 +12,28 @@ const require = createRequire(join(PKG_ROOT, "package.json"));
 
 type Log = (msg: string) => void;
 
+/**
+ * Full Chrome for Testing instead of the default headless shell: the headless shell stops
+ * producing animation frames on macOS while the screen is locked, which hangs unattended
+ * (agent-driven) renders at "Waiting for root component to load".
+ */
+const chromeMode = "chrome-for-testing" as const;
+
 async function bundleProject(project: Project, log: Log): Promise<string> {
   const entryPoint = writeEntry(project);
   log("bundling...");
   return bundle({ entryPoint, webpackOverride, outDir: join(project.workDir, "bundle"), rootDir: project.root });
 }
 
+/** Forward errors from the page (e.g. an exception in a draw file) so failures say what broke. */
+const browserLog = (log: Log) => ({ type, text }: { type: string; text: string }) => {
+  if (type === "error" || type === "warning") log(`[browser ${type}] ${text}`);
+};
+
 async function prepare(project: Project, video: Video, log: Log) {
-  await ensureBrowser();
+  await ensureBrowser({ chromeMode });
   const serveUrl = await bundleProject(project, log);
-  const composition = await selectComposition({ serveUrl, id: video.slug });
+  const composition = await selectComposition({ serveUrl, id: video.slug, chromeMode, onBrowserLog: browserLog(log) });
   return { serveUrl, composition };
 }
 
@@ -33,7 +45,7 @@ export async function still(project: Project, video: Video, frame: number, out: 
   }
   const output = out ?? join(project.root, "out", `${video.slug}-f${frame}.png`);
   mkdirSync(dirname(output), { recursive: true });
-  await renderStill({ serveUrl, composition, frame, output, imageFormat: "png" });
+  await renderStill({ serveUrl, composition, frame, output, imageFormat: "png", chromeMode, onBrowserLog: browserLog(log) });
   return { output, totalFrames: composition.durationInFrames, fps: composition.fps };
 }
 
@@ -49,6 +61,8 @@ export async function render(project: Project, video: Video, out: string | undef
     codec: "h264",
     outputLocation: output,
     imageFormat: "jpeg",
+    chromeMode,
+    onBrowserLog: browserLog(log),
     onProgress: ({ progress }) => {
       const pct = Math.floor(progress * 10) * 10;
       if (pct !== last) {

@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 /** eigencast: narrated, Manim-style explainer videos from a script and a canvas draw file. */
+import { writeSync } from "node:fs";
 import { PKG_VERSION, UserError } from "../project";
 import { type Args, parseArgs } from "./args";
 import { doctor } from "./commands/doctor";
@@ -44,13 +45,18 @@ async function main() {
     console.error(`Unknown command "${name}".\n\n${help()}`);
     process.exit(2);
   }
+  // Libraries (Remotion's browser download, progress) print to stdout; keep stdout for the result only.
+  // The result is written synchronously to fd 1 so process.exit() can't cut it off.
+  process.stdout.write = process.stderr.write.bind(process.stderr) as typeof process.stdout.write;
+  console.log = console.info = console.error;
+  const emit = (s: string) => writeSync(1, `${s}\n`);
   try {
     const out = await cmd.run(args);
-    console.log(json ? JSON.stringify(out.result, null, 2) : out.text);
+    emit(json ? JSON.stringify(out.result, null, 2) : out.text);
     process.exit(out.exitCode ?? 0);
   } catch (e) {
     const message = (e as Error).message;
-    if (json) console.log(JSON.stringify({ ok: false, error: message }));
+    if (json) emit(JSON.stringify({ ok: false, error: message }));
     else console.error(e instanceof UserError ? message : `error: ${(e as Error).stack ?? message}`);
     process.exit(1);
   }
