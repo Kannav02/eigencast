@@ -1,41 +1,34 @@
-# animation-kannav
+# eigencast (package source)
 
-Narrated explainer videos. Claude writes the code; Remotion renders frames, Qwen3-TTS speaks, ffmpeg does any post work. One Remotion project, many animations: each lives in `animations/<slug>/` and is registered in `src/registry.ts`.
+This repo is the eigencast package: a bun CLI + Remotion engine (`src/`) and a Python voice package (`python/`). User-facing agent instructions live in `skills/eigencast/SKILL.md`; keep it in sync when commands or the draw kit change. `examples/lineage` is a full project used for manual testing.
 
 ## Pins
-- remotion / @remotion/cli / @remotion/fonts 4.0.540 (keep all @remotion/* on the same exact version)
-- react 19.3.1, typescript 7.0.2, node 26
-- Python 3.13 via uv, mlx-audio 0.6.4
-- TTS models: preset voice `mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit` (speakers Ryan, Aiden for English); cloning `mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16`
+- remotion / @remotion/* 4.0.540 (all @remotion/* on the same exact version)
+- react 19.3.1, typescript 7.0.2, bun >= 1.3 (dev: 1.4.0)
+- Python 3.13 via uv, mlx-audio 0.6.4 (python/uv.lock, run with `--frozen`)
+- TTS models: preset `mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit` (Ryan, Aiden); clone `mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16`
 
 ## Commands
-- Voice clips: `uv run python -m tts.generate <slug>` (only regenerates changed beats; `--only s2b3` or `--force` to redo)
-- Studio preview: `npm run studio`
-- Still check: `npx remotion still src/index.ts <slug> out/<slug>-f<N>.png --frame=<N>`
-- Render: `npx remotion render src/index.ts <slug> out/<slug>.mp4`
+- Run the CLI from source inside a project: `cd examples/lineage && bun ../../src/cli/main.ts <command>`
 - Typecheck: `npx tsc --noEmit`
+- Tests: `bun test` (integration: packs the tarball, inits a temp project, renders a still)
+- Pack like npm would: `bun pm pack` → `eigencast-<version>.tgz`; try it with `eigencast init /tmp/x --from /abs/path/eigencast-<version>.tgz`
 
-## Workflow for a new animation
-1. Write the script as numbered scenes, each with beats (design time, phase, caption). Phases: SCORE, LOSS, WALL, FIX, OVERVIEW, or new ones added to `PHASE_COLORS`.
-2. Put spoken text per beat id (`s<scene>b<beat>`) in `animations/<slug>/script.json`. Spoken text spells out math ("w times x plus b"); captions keep symbols. Get the user to approve the script before generating audio.
-3. Run TTS. It writes `public/<slug>/audio/<beat>.wav` and `animations/<slug>/timing.json`.
-4. Build visuals. Canvas scenes: a `draw.js` exporting `SCENES` and `renderFrame(ctx, sceneIndex, t, scale)`, wrapped by `NarratedCanvas`. Pure React scenes are fine too; they must still use `timeline.ts` for timing.
-5. Check 4-6 stills across scenes, fix, then render the full mp4.
+## How the pieces connect (non-obvious parts)
+- No Remotion `public/` dir. `src/render/entry.ts` generates `<project>/.eigencast/entry.ts` that imports each video's draw file, timing.json and wav clips; webpack bundles them as assets.
+- `eigencast/*` imports in user draw files resolve through aliases, not node_modules: webpack alias in `src/render/entry.ts`, Bun plugin in `src/cli/load.ts` (the CLI imports draw files to read scenes). Change both together.
+- `remotion studio` only takes webpack settings from a config file, so `preview` writes `.eigencast/remotion.config.ts`.
+- The entry file must literally contain `registerRoot` or Remotion's bundler refuses it.
+- The voice venv lives in `~/.cache/eigencast/voice-<version>` (UV_PROJECT_ENVIRONMENT), not in node_modules.
+- Clip hashes are `sha1(json.dumps([text, voice], sort_keys=True))[:12]`; changing that re-records every user's clips.
+- `src/theme` must stay plain constants: the CLI imports it under bun, outside the browser. Font loading is in `src/stage/fonts.ts`.
 
 ## Hard rules
-- Audio sets the timing. Each beat lasts its clip + 0.5 s (min 0.55 × its design window); the design-time window is stretched to fit. Never hardcode frame counts for narrated beats.
-- Every frame must be a pure function of the frame number: no `Math.random` (use seeded RNG), no `Date`, no timers, no requestAnimationFrame.
-- House style is 3Blue1Brown-like: pure black, Manim's palette (`COLORS` in `src/lib/theme.ts`, hex values are Manim constants), Computer Modern (CMU Serif, OFL, files in `public/fonts/`) for all text, outlines instead of filled cards, plain centered subtitles. No 3b1b logo or characters.
-- Canvas text needs fonts loaded first. Use `CanvasStage`, which holds the render until `fontsLoaded` resolves. Always use `FONTS` from `src/lib/theme.ts`, never hardcode family names. CMU Serif reads small: canvas scenes scale text sizes by `TEXT_SCALE` (1.12).
-- Don't add `"type": "module"` to package.json: it makes webpack require file extensions on imports from `.js` files.
-- Colors only from `COLORS` in `src/lib/theme.ts`.
+- Every frame is a pure function of the frame number: no `Math.random`, `Date`, timers, rAF in anything that draws.
+- House style: pure black, Manim palette (`COLORS` in `src/theme`), CMU Serif for all text, outlines not filled cards. No 3b1b logo or characters, and keep "3Blue1Brown" out of names and branding.
+- Don't add `"type": "module"` to package.json: webpack would require file extensions on imports from `.js` files.
 
 ## Machine gotchas
-- `~/.npm` has root-owned files: run npm with `npm_config_cache=$TMPDIR/npm-cache`.
-- In the Claude Code sandbox, Remotion (node ignores the sandbox proxy, Chrome download/launch) and uv (panics reading macOS proxy config) must run with the sandbox disabled.
-- First Remotion render downloads Chrome Headless Shell; first TTS run downloads the preset-voice model (2.5 GB) to `~/.cache/huggingface`.
-- Voice cloning: put 10-20 s of clean speech in `voice/ref.wav` and its exact words in `voice/ref.txt`, then set `"mode": "clone"` in the script's `voice`.
-
-## ffmpeg (post work only; Remotion encodes the main render)
-- Music under narration: `ffmpeg -i out/x.mp4 -i music.wav -filter_complex "[1:a]volume=0.12[m];[0:a][m]amix=inputs=2:duration=first[a]" -map 0:v -map "[a]" -c:v copy out/x-music.mp4`
-- Trim: `ffmpeg -ss 00:01:00 -to 00:02:00 -i in.mp4 -c copy out.mp4`
+- `~/.npm` has root-owned files: use bun, or `npm_config_cache=$TMPDIR/npm-cache` for npx.
+- In the Claude Code sandbox, Remotion (Chrome) and uv (panics reading macOS proxy config) must run with the sandbox disabled.
+- First render downloads Chrome Headless Shell; first `voice` downloads the 2.5 GB preset model to `~/.cache/huggingface`.

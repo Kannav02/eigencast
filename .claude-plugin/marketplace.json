@@ -1,0 +1,11 @@
+{
+  "name": "eigencast",
+  "owner": { "name": "Kannav02" },
+  "plugins": [
+    {
+      "name": "eigencast",
+      "source": "./",
+      "description": "Make narrated, Manim-style explainer videos with the eigencast CLI."
+    }
+  ]
+}
