@@ -1,7 +1,7 @@
 /** `info` prints a video's timeline; `check` finds mistakes before rendering. */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { findProject, readJson, requireVideo, type Script, type Timing, type Video } from "../../project";
+import { BEAT_ID, findProject, readJson, requireVideo, type Script, type Timing, type Video } from "../../project";
 import { beatId, buildTimeline, type SceneDef } from "../../timeline";
 import { runVoice } from "../../voice";
 import { type Args, log } from "../args";
@@ -14,6 +14,41 @@ const NONDETERMINISM: [RegExp, string][] = [
   [/performance\.now\s*\(/, "performance.now(): frames must depend only on t"],
   [/setTimeout\s*\(|setInterval\s*\(|requestAnimationFrame\s*\(/, "timers: Remotion renders frames out of order; draw from t only"],
 ];
+
+/**
+ * Blank out comments and quoted strings, keeping line breaks, so the scan only sees code.
+ * A comment like `// never call Math.random()` is then not reported.
+ */
+export function codeOnly(src: string): string {
+  let out = "";
+  let i = 0;
+  const blank = (s: string) => s.replace(/[^\n]/g, " ");
+  while (i < src.length) {
+    const c = src[i];
+    const two = src.slice(i, i + 2);
+    if (two === "//") {
+      const end = src.indexOf("\n", i);
+      const stop = end === -1 ? src.length : end;
+      out += blank(src.slice(i, stop));
+      i = stop;
+    } else if (two === "/*") {
+      const end = src.indexOf("*/", i + 2);
+      const stop = end === -1 ? src.length : end + 2;
+      out += blank(src.slice(i, stop));
+      i = stop;
+    } else if (c === '"' || c === "'") {
+      // Template literals are left alone: `${Math.random()}` inside one is still code.
+      let j = i + 1;
+      while (j < src.length && src[j] !== c && src[j] !== "\n") j += src[j] === "\\" ? 2 : 1;
+      out += c + blank(src.slice(i + 1, j)) + (src[j] === c ? c : "");
+      i = src[j] === c ? j + 1 : j;
+    } else {
+      out += c;
+      i++;
+    }
+  }
+  return out;
+}
 
 export type Issue = { level: "error" | "warn"; where: string; message: string };
 
@@ -56,23 +91,38 @@ export async function check(a: Args) {
   const video = requireVideo(project, a.positional[0]);
   const issues: Issue[] = [];
   let scenes: SceneDef[] = [];
+  let loaded = false;
   try {
     scenes = await loadScenes(video);
+    loaded = true;
     issues.push(...checkScenes(scenes));
   } catch (e) {
     issues.push({ level: "error", where: "draw", message: `failed to load: ${(e as Error).message}` });
   }
 
-  const script = readJson<Script | null>(video.scriptFile, null);
-  if (!script) issues.push({ level: "error", where: "script.json", message: "missing" });
-  else {
-    const ids = new Set(scenes.flatMap((s, si) => s.beats.map((_, bi) => beatId(si, bi))));
-    for (const id of ids) if (!script.beats[id]?.trim()) issues.push({ level: "error", where: id, message: "no spoken text in script.json" });
-    for (const id of Object.keys(script.beats)) if (!ids.has(id)) issues.push({ level: "error", where: id, message: "in script.json but no matching beat in the draw file" });
+  let script: Script | null = null;
+  try {
+    script = readJson<Script | null>(video.scriptFile, null);
+  } catch (e) {
+    issues.push({ level: "error", where: "script.json", message: `not valid JSON: ${(e as Error).message}` });
+  }
+  if (!script) {
+    if (!issues.some((i) => i.where === "script.json")) issues.push({ level: "error", where: "script.json", message: "missing" });
+  } else if (!script.beats || typeof script.beats !== "object" || Array.isArray(script.beats)) {
+    issues.push({ level: "error", where: "script.json", message: 'needs a "beats" object mapping beat ids to spoken text' });
+  } else {
+    const bad = Object.keys(script.beats).filter((id) => !BEAT_ID.test(id));
+    if (bad.length) issues.push({ level: "error", where: "script.json", message: `beat ids must look like s0b1, got ${bad.map((b) => JSON.stringify(b)).join(", ")}` });
     if (!script.voice) issues.push({ level: "error", where: "script.json", message: 'needs a "voice" object' });
+    // Comparing against the draw file only means something if it loaded; otherwise every beat would look extra.
+    if (loaded) {
+      const ids = new Set(scenes.flatMap((s, si) => (s.beats ?? []).map((_, bi) => beatId(si, bi))));
+      for (const id of ids) if (typeof script.beats[id] !== "string" || !script.beats[id].trim()) issues.push({ level: "error", where: id, message: "no spoken text in script.json" });
+      for (const id of Object.keys(script.beats)) if (BEAT_ID.test(id) && !ids.has(id)) issues.push({ level: "error", where: id, message: "in script.json but no matching beat in the draw file" });
+    }
   }
 
-  const src = readFileSync(video.drawFile!, "utf8");
+  const src = codeOnly(readFileSync(video.drawFile!, "utf8"));
   src.split("\n").forEach((line, i) => {
     for (const [re, message] of NONDETERMINISM) if (re.test(line)) issues.push({ level: "error", where: `${video.drawFile!.split("/").pop()}:${i + 1}`, message });
   });

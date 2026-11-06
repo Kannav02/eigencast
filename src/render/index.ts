@@ -87,6 +87,8 @@ export function preview(project: Project): Promise<number> {
   const entry = writeEntry(project);
   const config = writeStudioConfig(project);
   const cli = join(dirname(require.resolve("@remotion/cli/package.json")), "remotion-cli.js");
-  const child = spawn(process.execPath, [cli, "studio", entry, "--config", config], { cwd: project.root, stdio: "inherit" });
+  // Studio has no host option and listens on every interface; the preload pins it to 127.0.0.1.
+  const loopback = join(PKG_ROOT, "src", "render", "loopback.cjs");
+  const child = spawn(process.execPath, ["--preload", loopback, cli, "studio", entry, "--config", config], { cwd: project.root, stdio: "inherit" });
   return new Promise((res) => child.on("exit", (code) => res(code ?? 0)));
 }

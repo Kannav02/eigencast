@@ -9,7 +9,11 @@ from pathlib import Path
 
 from mlx_audio.stt.utils import load_model
 
+from .narrate import check_beat_ids
+
 STT_MODEL = "mlx-community/parakeet-tdt-0.6b-v3"
+# Commit SHA to download (None follows main); see MODEL_REVISIONS in voice.py.
+STT_REVISION: str | None = None
 
 
 def words(text: str) -> list[str]:
@@ -36,7 +40,8 @@ def listen(video_dir: Path, max_wer: float = 0.15) -> dict:
     3. Return word error rate per beat and the beats above the threshold.
     """
     script = json.loads((video_dir / "script.json").read_text())
-    model = load_model(STT_MODEL)
+    check_beat_ids(script["beats"])
+    model = load_model(STT_MODEL, revision=STT_REVISION)
     scores, flagged = {}, []
     for beat_id, text in script["beats"].items():
         wav = video_dir / "audio" / f"{beat_id}.wav"

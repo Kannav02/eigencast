@@ -14,6 +14,18 @@ from mlx_audio.tts.utils import load_model
 
 PRESET_MODEL = "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit"
 CLONE_MODEL = "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16"
+# Hugging Face commit SHAs to download, so a changed or compromised model repo can't swap the weights.
+# None follows the repo's main branch. Fill in with:
+#   curl -s https://huggingface.co/api/models/<repo>/revision/main | jq -r .sha
+MODEL_REVISIONS: dict[str, str | None] = {PRESET_MODEL: None, CLONE_MODEL: None}
+
+
+def inside(base: Path, rel: str, what: str) -> Path:
+    """`base / rel`, refusing absolute paths and `..` that would leave `base`."""
+    path = (base / rel).resolve()
+    if Path(rel).is_absolute() or not path.is_relative_to(base.resolve()):
+        raise SystemExit(f'script.json: "{what}" must be a path inside the video folder, got {rel!r}')
+    return path
 
 
 @dataclass
@@ -40,7 +52,8 @@ class QwenMlxVoice:
 
     def _load(self):
         mode = self.settings.get("mode", "preset")
-        self.model = load_model(CLONE_MODEL if mode == "clone" else PRESET_MODEL)
+        repo = CLONE_MODEL if mode == "clone" else PRESET_MODEL
+        self.model = load_model(repo, revision=MODEL_REVISIONS[repo])
 
     def speak(self, text: str) -> Clip:
         """Synthesize one utterance.
@@ -54,8 +67,8 @@ class QwenMlxVoice:
             self._load()
         s = self.settings
         if s.get("mode") == "clone":
-            ref_audio = self.base_dir / s.get("ref_audio", "voice/ref.wav")
-            ref_text = self.base_dir / s.get("ref_text", "voice/ref.txt")
+            ref_audio = inside(self.base_dir, s.get("ref_audio", "voice/ref.wav"), "ref_audio")
+            ref_text = inside(self.base_dir, s.get("ref_text", "voice/ref.txt"), "ref_text")
             results = list(self.model.generate(text=text, ref_audio=str(ref_audio), ref_text=ref_text.read_text().strip()))
         else:
             results = list(self.model.generate_custom_voice(

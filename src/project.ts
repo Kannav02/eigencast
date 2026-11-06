@@ -30,6 +30,9 @@ export function findProject(start = process.cwd()): Project {
     const cfg = join(dir, CONFIG_FILE);
     if (existsSync(cfg)) {
       const config = { fps: 30, ...JSON.parse(readFileSync(cfg, "utf8")) } as ProjectConfig;
+      if (!Number.isInteger(config.fps) || config.fps < 1 || config.fps > 240) {
+        throw new UserError(`${CONFIG_FILE}: "fps" must be a whole number between 1 and 240, got ${JSON.stringify(config.fps)}`);
+      }
       return { root: dir, config, videosDir: join(dir, "videos"), workDir: join(dir, ".eigencast") };
     }
     const up = dirname(dir);
@@ -70,6 +73,9 @@ export function requireVideo(project: Project, slug: string | undefined): Video 
   if (!v) throw new UserError(`No video "${slug}" (needs videos/${slug}/draw.js). Videos in this project: ${names}`);
   return v;
 }
+
+/** Beat ids are always `s<scene>b<beat>`; anything else in script.json or timing.json is rejected before it reaches a path. */
+export const BEAT_ID = /^s\d+b\d+$/;
 
 export function readJson<T>(file: string, fallback: T): T {
   return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as T) : fallback;

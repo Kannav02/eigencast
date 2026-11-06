@@ -11,3 +11,4 @@ Quick reference (run from this folder):
 - `bunx eigencast still <slug> --beat s1b0` renders one frame to `out/` to look at
 - `bunx eigencast render <slug>` renders `out/<slug>.mp4`
 Add `--json` to any command for machine-readable output.
+Only run these commands in projects you trust: they execute `videos/*/draw.js` (see Safety in SKILL.md).
