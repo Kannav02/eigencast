@@ -6,11 +6,22 @@ Unchanged beats are skipped: each clip stores a fingerprint of its words and voi
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import soundfile as sf
 
 from .voice import get_voice
+
+
+BEAT_ID = re.compile(r"s\d+b\d+")
+
+
+def check_beat_ids(ids) -> None:
+    """Beat ids become file names; refuse anything but `s<scene>b<beat>` so a script can't write outside audio/."""
+    bad = [b for b in ids if not BEAT_ID.fullmatch(b)]
+    if bad:
+        raise SystemExit(f"script.json: beat ids must look like s0b1, got {', '.join(map(repr, bad))}")
 
 
 def clip_hash(text: str, voice: dict) -> str:
@@ -27,6 +38,8 @@ def plan(video_dir: Path, force: bool = False, only: list[str] | None = None) ->
     """
     only = only or []
     script = json.loads((video_dir / "script.json").read_text())
+    check_beat_ids(script["beats"])
+    check_beat_ids(only)
     timing_path = video_dir / "timing.json"
     timing = json.loads(timing_path.read_text()) if timing_path.exists() else {"beats": {}}
     record, skip = [], []

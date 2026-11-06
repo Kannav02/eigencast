@@ -18,7 +18,9 @@ function registerAlias() {
       build.onResolve({ filter: /^eigencast(\/.*)?$/ }, (args) => {
         const sub = args.path.slice("eigencast".length).replace(/^\//, "") || "draw";
         const base = join(PKG_ROOT, "src", sub);
-        const path = ["index.ts", "index.tsx"].map((f) => join(base, f)).find(existsSync) ?? `${base}.ts`;
+        // Same order webpack uses: the file itself, then the folder's index (see webpackOverride in src/render/entry.ts).
+        const candidates = [`${base}.ts`, `${base}.tsx`, join(base, "index.ts"), join(base, "index.tsx")];
+        const path = candidates.find(existsSync) ?? `${base}.ts`;
         return { path };
       });
     },
