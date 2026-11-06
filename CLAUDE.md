@@ -18,6 +18,8 @@ This repo is the eigencast package: a bun CLI + Remotion engine (`src/`) and a P
 - No Remotion `public/` dir. `src/render/entry.ts` generates `<project>/.eigencast/entry.ts` that imports each video's draw file, timing.json and wav clips; webpack bundles them as assets.
 - `eigencast/*` imports in user draw files resolve through aliases, not node_modules: webpack alias in `src/render/entry.ts`, Bun plugin in `src/cli/load.ts` (the CLI imports draw files to read scenes). Change both together.
 - `remotion studio` only takes webpack settings from a config file, so `preview` writes `.eigencast/remotion.config.ts`.
+- Remotion Studio listens on every interface and has no host option; `preview` preloads `src/render/loopback.cjs` into it to force 127.0.0.1.
+- Beat ids (`s<scene>b<beat>`) become file names and import identifiers: both the CLI (`BEAT_ID` in `src/project.ts`) and the voice package (`check_beat_ids`) reject anything else.
 - The entry file must literally contain `registerRoot` or Remotion's bundler refuses it.
 - The voice venv lives in `~/.cache/eigencast/voice-<version>` (UV_PROJECT_ENVIRONMENT), not in node_modules.
 - Clip hashes are `sha1(json.dumps([text, voice], sort_keys=True))[:12]`; changing that re-records every user's clips.

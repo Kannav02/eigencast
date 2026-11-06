@@ -26,7 +26,7 @@ export function doctor(_a: Args) {
   const bun = process.versions.bun;
   checks.push({ name: "bun", ok: Boolean(bun), detail: bun ? `bun ${bun}` : "not running under bun", fix: "Install bun: https://bun.sh" });
   const uv = version("uv");
-  checks.push({ name: "uv", ok: Boolean(uv), detail: uv ?? "not found", fix: "Install uv (runs the voice step): curl -LsSf https://astral.sh/uv/install.sh | sh" });
+  checks.push({ name: "uv", ok: Boolean(uv), detail: uv ?? "not found", fix: "Install uv (runs the voice step): see https://docs.astral.sh/uv/getting-started/installation/ (e.g. `brew install uv`)" });
   const apple = process.platform === "darwin" && process.arch === "arm64";
   checks.push({
     name: "voice hardware",

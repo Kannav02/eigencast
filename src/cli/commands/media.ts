@@ -1,5 +1,5 @@
 /** Commands that make sound or pictures: voice, still, render, preview. */
-import { resolve } from "node:path";
+import { isAbsolute, relative, resolve } from "node:path";
 import { UserError, findProject, requireVideo } from "../../project";
 import { preview as openStudio, render as renderVideo, still as renderStill } from "../../render";
 import { runVoice } from "../../voice";
@@ -24,35 +24,50 @@ export async function voice(a: Args) {
  * 1. --frame N is used as is.
  * 2. --beat s1b2 takes the middle of that beat; --at 12.5 converts seconds to a frame.
  * 3. With none given, the middle of the first beat.
+ * The frame is checked against the timeline here, before the slow bundle and browser steps.
  */
 async function pickFrame(a: Args, video: ReturnType<typeof requireVideo>, fps: number): Promise<number> {
-  const frame = flagNum(a, "frame");
-  if (frame !== undefined) return Math.floor(frame);
-  const at = flagNum(a, "at");
-  if (at !== undefined) return Math.floor(at * fps);
   const { timeline } = await timelineFor(video, fps);
+  const inRange = (f: number, how: string) => {
+    if (f < 0 || f >= timeline.total) {
+      throw new UserError(`${how} is outside the video (frames 0-${timeline.total - 1}, ${(timeline.total / fps).toFixed(2)}s).`);
+    }
+    return f;
+  };
+  const frame = flagNum(a, "frame");
+  if (frame !== undefined) return inRange(Math.floor(frame), `--frame ${frame}`);
+  const at = flagNum(a, "at");
+  if (at !== undefined) return inRange(Math.floor(at * fps), `--at ${at}`);
   const want = flagStr(a, "beat") ?? timeline.beats[0]?.id;
   const b = timeline.beats.find((x) => x.id === want);
   if (!b) throw new UserError(`No beat "${want}". Run \`eigencast info ${video.slug}\` to list beats.`);
   return b.start + Math.floor(b.frames / 2);
 }
 
+/** Resolve --out, and say so when it points outside the project (a typo or a misread instruction). */
+function outPath(project: { root: string }, out: string | undefined): string | undefined {
+  if (!out) return undefined;
+  const abs = resolve(out);
+  const r = relative(project.root, abs);
+  if (r.startsWith("..") || isAbsolute(r)) log(`note: --out writes outside the project: ${abs}`);
+  return abs;
+}
+
 export async function still(a: Args) {
   const project = findProject();
   const video = requireVideo(project, a.positional[0]);
   const frame = await pickFrame(a, video, project.config.fps);
-  const out = flagStr(a, "out");
-  const r = await renderStill(project, video, frame, out && resolve(out), log);
+  const r = await renderStill(project, video, frame, outPath(project, flagStr(a, "out")), log);
   return { result: { ...r, frame }, text: `wrote ${r.output} (frame ${frame} of ${r.totalFrames})` };
 }
 
 export async function render(a: Args) {
   const project = findProject();
   const video = requireVideo(project, a.positional[0]);
-  const out = flagStr(a, "out");
+  const out = outPath(project, flagStr(a, "out"));
   const concurrency = flagNum(a, "concurrency");
   if (concurrency !== undefined && !(Number.isInteger(concurrency) && concurrency >= 1)) throw new UserError("--concurrency needs a whole number of at least 1.");
-  const r = await renderVideo(project, video, out && resolve(out), log, concurrency);
+  const r = await renderVideo(project, video, out, log, concurrency);
   return { result: r, text: `wrote ${r.output} (${r.seconds.toFixed(1)}s, ${r.totalFrames} frames)` };
 }
 

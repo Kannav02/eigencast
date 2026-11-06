@@ -13,7 +13,12 @@ export const VOICE_PROJECT = join(PKG_ROOT, "python");
  * 3. The last stdout line is parsed as the JSON result.
  */
 export function runVoice(args: string[], onLine: (line: string) => void): Promise<unknown> {
-  const env = { ...process.env, UV_PROJECT_ENVIRONMENT: join(homedir(), ".cache", "eigencast", `voice-${PKG_VERSION}`) };
+  // Pass only what uv, Python and the model download need, not every token in the user's shell.
+  const keep = (k: string) =>
+    ["PATH", "HOME", "USER", "LOGNAME", "SHELL", "LANG", "TMPDIR", "TERM", "NO_COLOR", "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"].includes(k) ||
+    /^(LC_|UV_|HF_|HUGGINGFACE_|XDG_|HTTPS?_PROXY$|NO_PROXY$|https?_proxy$|no_proxy$)/.test(k);
+  const base = Object.fromEntries(Object.entries(process.env).filter(([k]) => keep(k)));
+  const env = { ...base, UV_PROJECT_ENVIRONMENT: join(homedir(), ".cache", "eigencast", `voice-${PKG_VERSION}`) };
   const child = spawn("uv", ["run", "--frozen", "--quiet", "--project", VOICE_PROJECT, "eigencast-voice", ...args], { env });
   let pending = "";
   let result: string | null = null;
@@ -30,7 +35,8 @@ export function runVoice(args: string[], onLine: (line: string) => void): Promis
   child.stderr.on("data", (b: Buffer) => (err += b));
   return new Promise((resolve, reject) => {
     child.on("error", (e) => reject(new Error(`Could not start uv (${e.message}). Install it: https://docs.astral.sh/uv/`)));
-    child.on("exit", (code) => {
+    // "close" fires after stdout/stderr have drained; "exit" can fire before the last JSON line is read.
+    child.on("close", (code) => {
       take(pending);
       if (code === 0 && result) resolve(JSON.parse(result));
       else reject(new Error(`voice step failed (exit ${code}):\n${err.trim().split("\n").slice(-15).join("\n")}`));
