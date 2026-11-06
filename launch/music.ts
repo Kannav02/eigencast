@@ -3,12 +3,11 @@
  * Everything is generated here from oscillators and seeded noise, so there are no samples
  * or licensed sounds. The arrangement follows the video's cuts:
  *
- *   0.0–3.5 s   the problem: a quiet A-minor drone and a ticking clock
- *   3.5–6.0 s   a noise riser into the title
- *   6.0 s       impact
- *   6.0–17.0 s  the terminal: kick, bass, 16th-note arpeggio over Am–F–C–G
- *   17.0–25.4 s the finished video plays: pads only, kept low under its narration
- *   25.4–30 s   end card: a C-major swell and a bell, fading out
+ *   0.0–2.7 s   the prompt is typed: a quiet A-minor drone and keystrokes, rising into
+ *   2.7–5.0 s   the title: an impact and two bells
+ *   5.0–17.0 s  Claude Code works: kick, bass, 16th-note arpeggio over Am–F–C–G
+ *   17.0–25.1 s the finished video plays: pads only, kept low under its narration
+ *   25.1–30 s   end card: a C-major swell and bells, fading out
  *
  * Run: bun launch/music.ts
  */
@@ -170,42 +169,47 @@ const CHORDS: Record<string, { root: number; tones: number[] }> = {
   G: { root: 43, tones: [55, 59, 62] },
 };
 
-// 0–3.5 s: the problem
-pad(0, 6.0, [45, 57, 64], 0.06, 1.6, 0.6);
-for (let t = 0.25; t < 3.5; t += 0.5) hat(t, 0.07, (t * 2) % 2 < 1 ? 0.4 : -0.4); // a ticking clock
-[0.5, 1.5, 2.5].forEach((t, k) => pluck(t, [76, 72, 71][k], 0.09, 0.3));
-// 3.5–6 s: rise into the title
-riser(3.5, 6.0);
-for (let t = 3.5; t < 6; t += 0.25) hat(t, 0.05 + 0.05 * ((t - 3.5) / 2.5));
-// 6 s: impact, then the groove
-impact(6.0);
+// 0–2.7 s: the prompt is typed
+pad(0, 5.0, [45, 57, 64], 0.06, 1.0, 0.6);
+const keys = rng(11);
+for (let t = 0.6; t < 2.35; t += 0.07 + keys() * 0.06) hat(t, 0.035 + keys() * 0.03, keys() - 0.5); // keystrokes
+pluck(0.3, 76, 0.08, 0.3);
+pluck(1.3, 72, 0.08, -0.3);
+riser(1.7, 2.7, 0.18);
+// 2.7–5 s: title
+impact(2.7, 0.85);
+bell(2.7, 81, 0.11, -0.2);
+bell(3.2, 76, 0.08, 0.25);
+riser(4.0, 5.0, 0.16);
+// 5–17 s: Claude Code works
+impact(5.0, 0.6);
 const groove = ["Am", "F", "C", "G", "Am", "F"];
 groove.forEach((name, bar) => {
-  const t0 = 6 + bar * 2;
+  const t0 = 5 + bar * 2;
   const end = Math.min(t0 + 2, 17);
   const c = CHORDS[name];
   pad(t0, end - t0, c.tones, 0.055, 0.15, 0.4);
-  for (let t = t0; t < end - 1e-6; t += 0.5) kick(t, t === 6 ? 0 : 0.75);
+  for (let t = t0; t < end - 1e-6; t += 0.5) kick(t, t === 5 ? 0 : 0.75);
   for (let t = t0 + 0.25; t < end - 1e-6; t += 0.5) hat(t, 0.1);
   for (let t = t0; t < end - 1e-6; t += 0.25) bass(t, 0.22, c.root + (Math.round((t - t0) / 0.25) % 4 === 3 ? 12 : 0));
   const arp = [c.tones[0] + 12, c.tones[1] + 12, c.tones[2] + 12, c.tones[1] + 24];
   for (let k = 0; t0 + k * 0.125 < end - 1e-6; k++) pluck(t0 + k * 0.125, arp[k % 4], 0.11, k % 2 ? 0.35 : -0.35);
 });
-// 17–25.4 s: under the narration
+// 17–25.1 s: under the explainer's narration
 riser(16.0, 17.0, 0.08);
 ["C", "G", "Am", "F"].forEach((name, bar) => {
   const t0 = 17 + bar * 2;
-  pad(t0, Math.min(2, 25.4 - t0), CHORDS[name].tones, 0.045, 0.4, 0.8);
+  pad(t0, Math.min(2, 25.1 - t0), CHORDS[name].tones, 0.045, 0.4, 0.8);
 });
 for (let t = 17; t < 25; t += 1) bass(t, 0.9, [48, 43, 45, 41][Math.floor((t - 17) / 2)], 0.12);
-// 25.4–30 s: end card
-riser(24.4, 25.4, 0.12);
-impact(25.4, 0.8);
-pad(25.4, 3.2, [48, 55, 60, 64, 67], 0.075, 0.08, 1.4);
-bass(25.4, 3.0, 36, 0.25);
-bell(25.4, 84, 0.13, -0.2);
-bell(25.9, 79, 0.1, 0.25);
-bell(26.4, 88, 0.08, 0);
+// 25.1–30 s: end card
+riser(24.1, 25.1, 0.12);
+impact(25.1, 0.8);
+pad(25.1, 3.3, [48, 55, 60, 64, 67], 0.075, 0.08, 1.4);
+bass(25.1, 3.0, 36, 0.25);
+bell(25.1, 84, 0.13, -0.2);
+bell(25.6, 79, 0.1, 0.25);
+bell(26.1, 88, 0.08, 0);
 
 // ---------- reverb (Schroeder: 4 combs + 2 all-passes per channel) ----------
 function reverb(x: Float32Array, spread: number) {
