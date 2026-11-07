@@ -2,7 +2,9 @@
 
 Narrated, Manim-style explainer videos (black background, Computer Modern text, AI voice-over), made on demand by whatever coding agent you already use.
 
-![A frame from the example video](docs/benchmark/gemini-4-argon/frames.jpg)
+[![Launch video: Claude Code makes a narrated explainer video with eigencast](docs/launch/poster.jpg)](docs/launch/eigencast-launch.mp4)
+
+▶ **[Watch the 30-second launch video](docs/launch/eigencast-launch.mp4)** (sound on). Claude Code is asked for a video on derivatives, runs eigencast, checks a frame, and renders. The explainer that plays at the end is real output from the Claude Code run in the [benchmark](#benchmark-same-prompt-six-models). The launch video itself is built with Remotion in [`launch/`](launch/).
 
 ## Why this exists
 

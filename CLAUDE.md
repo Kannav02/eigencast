@@ -34,3 +34,9 @@ This repo is the eigencast package: a bun CLI + Remotion engine (`src/`) and a P
 - `~/.npm` has root-owned files: use bun, or `npm_config_cache=$TMPDIR/npm-cache` for npx.
 - In the Claude Code sandbox, Remotion (Chrome) and uv (panics reading macOS proxy config) must run with the sandbox disabled.
 - First render downloads Chrome Headless Shell; first `voice` downloads the 2.5 GB preset model to `~/.cache/huggingface`.
+
+## Launch video
+- `launch/` is a standalone Remotion composition for the 30 s launch video (not shipped: package.json `files` leaves it out).
+- `bun launch/render.ts` renders `launch/out/eigencast-launch.mp4`; `--frame N` renders one still. Set `REMOTION_CHROME` to reuse an existing Chrome binary.
+- The music is synthesized by `launch/music.ts` (no samples); render generates `launch/assets/music.wav` if it's missing.
+- The payoff clip and `launch/stills/derivative-f558.png` come from the Claude Code benchmark run (`docs/benchmark/claude-opus-5-5`); the Claude Code transcript is a reconstruction of that run using the CLI's real output formats.
